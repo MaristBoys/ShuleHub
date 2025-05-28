@@ -1,4 +1,4 @@
-function handleCredentialResponse(response) {
+window.handleCredentialResponse = function(response) {
   const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyS249iv_O3nnTjbHkHb6WNN7-ZmPegjMZUZbSYS4lgXEAWQQYNZzsNHGF9P2-cry_3Mw/exec";
 
   const idToken = response.credential;

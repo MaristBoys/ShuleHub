@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Login con Google</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="Login.js" defer></script>
+</head>
+<body>
+  <h2>Accedi</h2>
+  <div id="g_id_onload"
+       data-client_id="651622332732-hqg898c50786ii5rpa4iieo43gb6kmc8.apps.googleusercontent.com"
+       data-callback="handleCredentialResponse"
+       data-auto_prompt="false">
+  </div>
+  <div class="g_id_signin"
+       data-type="signin"
+       data-size="large"
+       data-theme="filled_black"
+       data-text="sign_in_with"
+       data-shape="pill"
+       data-locale="it"
+       data-logo_alignment="left">
+  </div>
+  <div>
+    <a href="pages/prova.html">Vai a prova</a>
+  </div>
+</body>
+</html>

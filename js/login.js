@@ -1,24 +1,26 @@
-window.handleCredentialResponse = function(response) {
-  const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyS249iv_O3nnTjbHkHb6WNN7-ZmPegjMZUZbSYS4lgXEAWQQYNZzsNHGF9P2-cry_3Mw/exec";
+async function handleCredentialResponse(response) {
+    const idToken = response.credential;
+    console.log("Ricevuto idToken:", idToken);
 
-  const idToken = response.credential;
+    try {
+        const backendUrl = 'https://google-api-backend-biu7.onrender.com/auth';
+        const res = await fetch(backendUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
 
-  fetch(GOOGLE_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ idToken: idToken })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.success) {
-      alert(`Benvenuto ${data.user.name} (${data.user.email})!`);
-      // Qui puoi caricare la tabella filtrata ecc.
-    } else {
-      alert('Accesso negato: ' + data.message);
+        const data = await res.json();
+        console.log('Risposta backend:', data);
+
+        const resultDiv = document.getElementById('result');
+        if (data.success) {
+            resultDiv.innerHTML = `<h2>Benvenuto, ${data.name}</h2><p>Profilo: ${data.profile}</p>`;
+        } else {
+            resultDiv.innerHTML = `<p style="color:red;">Accesso negato: ${data.message}</p>`;
+        }
+    } catch (error) {
+        console.error('Errore:', error);
+        document.getElementById('result').innerHTML = `<p style="color:red;">Errore nel contattare il backend</p>`;
     }
-  })
-  .catch(err => {
-    console.error(err);
-    alert('Errore di comunicazione');
-  });
 }

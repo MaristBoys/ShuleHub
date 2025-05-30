@@ -1,4 +1,122 @@
 <!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>MwalimuHub - Login</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="js/login.js" defer></script>
+</head>
+<body>
+
+    <!-- Fascia immagine decorativa -->
+    <div class="header-image"></div>
+
+    <!-- Sezione logo, titolo, sottotitolo -->
+    <header class="content-header">
+        <div class="logo-title">
+            <img src="assets/Marist_Brothers_monogram.svg" alt="Logo Marist" class="logo">
+            <div>
+                <h1>MwalimuHub</h1>
+                <p id="subtitle">Il tuo sottotitolo qui</p>
+            </div>
+        </div>
+        <button id="theme-toggle">🌞 / 🌙</button>
+    </header>
+
+    <main>
+        <div id="g_id_onload"
+             data-client_id="651622332732-hqg898c50786ii5rpa4iieo43gb6kmc8.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+
+        <div class="g_id_signin google-button"
+             data-type="standard"
+             data-size="large"
+             data-theme="outline"
+             data-text="sign_in_with"
+             data-shape="rectangular"
+             data-logo_alignment="left">
+        </div>
+
+        <div id="result"></div>
+    </main>
+
+    <script>
+        // Tema chiaro/scuro
+        const toggleButton = document.getElementById('theme-toggle');
+        toggleButton.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+        });
+    </script>
+
+</body>
+</html>
+
+
+
+
+
+
+<!--
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Login con Google Identity</title>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="js/login.js" defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 100px;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Benvenuto nella mia app</h1>
+-->
+    <!-- Google Identity button -->   <!-- data-client_id= "TUO_GOOGLE_CLIENT_ID" -->
+<!--    <div id="g_id_onload"
+         data-client_id= "651622332732-hqg898c50786ii5rpa4iieo43gb6kmc8.apps.googleusercontent.com"     
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-size="large"
+         data-theme="outline"
+         data-text="sign_in_with"
+         data-shape="rectangular"
+         data-logo_alignment="left">
+    </div>
+
+    <div id="result"></div>
+
+</body>
+</html>
+-->
+
+<!--
+    <div>
+      <a href="pages/prova.html">Vai a prova</a>
+    </div>
+-->
+
+
+
+
+
+
+<!--
+<!DOCTYPE html>
 <html>
 <head>
   <title>Login con Google</title>
@@ -26,3 +144,4 @@
   </div>
 </body>
 </html>
+-->

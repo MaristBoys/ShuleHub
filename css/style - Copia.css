@@ -10,7 +10,8 @@ body {
     align-items: center;
     justify-content: flex-start;
     margin: 0;
-    padding-top: 0; /* Permette alla navbar di sovrapporsi all'immagine */
+    /* Rimosso padding-top fisso, ora gestito dinamicamente dallo spacer */
+    padding-top: 0; 
     transition: background-color 0.3s ease, color 0.3s ease;
     min-height: 100vh; /* Assicura che il body occupi almeno l'intera altezza della viewport */
 }
@@ -61,8 +62,12 @@ body.dark-mode {
 
 /* Stile specifico per il logo nella navbar */
 .navbar-logo {
-    height: 32px; /* Altezza standard per il logo nella navbar */
-    width: 32px;
+    height: 36px; /* Altezza leggermente più grande */
+    width: 36px; /* Larghezza leggermente più grande */
+    background-color: white; /* Sfondo bianco */
+    padding: 4px; /* Aggiungi padding per far vedere lo sfondo */
+    border-radius: 50%; /* Mantieni la forma circolare */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Aggiungi una leggera ombra per farlo risaltare */
 }
 
 .content-header h1 {
@@ -130,12 +135,19 @@ main {
     padding-bottom: 50px; /* Spazio per evitare che il contenuto sia tagliato dal footer immaginario */
 }
 
-/* Google Sign-In Button */
+/* Nuovo wrapper per centrare il bottone Google */
+.google-button-wrapper {
+    display: flex;
+    justify-content: center; /* Centra il contenuto (il bottone GSI) */
+    align-items: center;
+    margin: 10px auto; /* Centra il wrapper stesso all'interno del suo contenitore (main) */
+    width: 100%; /* Assicura che il wrapper prenda tutta la larghezza disponibile per la centratura */
+}
+
+/* Google Sign-In Button (solo stili di transizione, la centratura è nel wrapper) */
 .google-button {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    margin: 20px auto; /* Centra il bottone */
-    display: flex; /* Per centrare il bottone GSI */
-    justify-content: center; /* Per centrare il bottone GSI */
+    /* Rimosso margin, display, justify-content, align-items da qui */
 }
 
 .google-button:hover {
@@ -212,7 +224,7 @@ body.dark-mode #authenticated-content {
 
 #main-navbar .container {
     width: 100%; /* Assicura che il contenuto prenda tutta la larghezza disponibile */
-    padding: 0.5rem 1rem; /* MODIFICATO: Padding orizzontale ridotto per dare più spazio */
+    padding: 0.5rem 1rem; /* Padding orizzontale ridotto per dare più spazio */
     display: flex; /* Assicura il flexbox */
     align-items: center; /* Allinea verticalmente gli elementi */
     justify-content: space-between; /* Spinge i gruppi agli estremi */
@@ -264,15 +276,15 @@ body.dark-mode #authenticated-content {
 }
 
 /* Parte destra della navbar (Link di Navigazione + Bottone Logout) */
-#navbar-right-section {
-    display: flex;
+#desktop-nav-links { /* ID cambiato per desktop */
+    display: flex; /* Visibile su desktop */
     align-items: center;
     gap: 0.5rem; /* Spazio tra i link e il bottone per desktop */
     flex-shrink: 1; /* Permette a questo gruppo di restringersi */
     min-width: 0; /* Importante per evitare overflow con flexbox */
 }
 
-#main-navbar a {
+#desktop-nav-links a {
     color: #FFD700; /* Giallo oro per il testo dei link */
     text-decoration: none;
     padding: 0.4rem 0.6rem; /* Padding ridotto per i link */
@@ -285,29 +297,33 @@ body.dark-mode #authenticated-content {
     min-width: 0; /* Permette al testo di restringersi */
 }
 
-#main-navbar a:hover {
+#desktop-nav-links a:hover {
     background-color: rgba(255, 255, 255, 0.2);
     color: #FFD700; /* Mantiene il giallo oro anche al hover */
 }
 
-#navbar-logout-button {
+#navbar-logout-button { /* Questo è il bottone di logout per desktop */
     background-color: #B8860B; /* Giallo scuro (DarkGoldenrod) */
     color: #FFD700; /* Giallo oro per il testo del bottone */
     padding: 0.4rem 0.6rem; /* Padding ridotto per il bottone */
     border-radius: 0.5rem;
     font-weight: bold; /* Grassetto per il bottone */
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out;
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
     border: none;
-    display: none; /* Inizialmente nascosto */
 }
 
 #navbar-logout-button:hover {
-    background-color: #A07A0A; /* Giallo scuro leggermente più scuro al hover */
-    color: #FFD700; /* Mantiene il giallo oro anche al hover */
+    background-color: #A0700A;
+    color: #FFD700;
 }
 
-/* Responsive Adjustments */
+/* Assicura che la classe 'hidden' funzioni correttamente per nascondere gli elementi */
+.hidden {
+    display: none !important;
+}
+
+/* Responsive Adjustments (Adattati per rimuovere il layout mobile specifico della navbar) */
 @media (max-width: 768px) {
     .header-image {
         height: 150px;
@@ -315,7 +331,7 @@ body.dark-mode #authenticated-content {
 
     .content-header {
         padding: 15px;
-        margin-top: 20px; /* Mantiene il margine positivo anche su mobile */
+        margin-top: 20px;
     }
 
     .logo {
@@ -340,45 +356,31 @@ body.dark-mode #authenticated-content {
         font-size: 0.9em;
     }
 
-    /* Navbar responsive container */
+    /* La navbar ora usa il layout desktop anche su mobile */
     #main-navbar .container {
-        flex-direction: column; /* Impila gli elementi verticalmente */
-        align-items: flex-start; /* Allinea a sinistra */
-        padding: 0.5rem 1rem; /* Mantiene il padding su mobile */
+        flex-direction: row; /* Mantiene gli elementi in riga */
+        justify-content: space-between; /* Spinge gli elementi agli estremi */
+        padding: 0.5rem 0.5rem; /* Padding ridotto per schermi più piccoli */
     }
 
-    /* Parte sinistra della navbar (Logo + Nome Scuola) su mobile */
-    #navbar-left-section {
-        width: 100%;
-        justify-content: flex-start;
-        margin-bottom: 0.5rem;
+    #navbar-left-section span {
+        font-size: 1rem; /* Riduci dimensione testo scuola su mobile */
     }
 
-    /* Parte centrale della navbar (Dati Utente) su mobile */
     #navbar-center-section {
-        width: 100%;
-        text-align: left; /* Allinea a sinistra su mobile */
-        margin-bottom: 0.5rem;
+        display: block; /* Assicurati che sia visibile anche su mobile */
+        flex-grow: 1; /* Permette di occupare lo spazio rimanente */
+        text-align: center; /* Centra il testo utente */
     }
 
-    /* Parte destra della navbar (Link di Navigazione + Bottone Logout) su mobile */
-    #navbar-right-section {
-        flex-direction: column; /* Impila link e bottone verticalmente */
-        align-items: flex-start; /* Allinea a sinistra */
-        width: 100%;
-        margin-top: 0.5rem;
-        gap: 0.5rem;
+    #desktop-nav-links {
+        display: flex; /* Assicurati che i link desktop siano visibili */
+        gap: 0.25rem; /* Riduci ulteriormente lo spazio tra i link su mobile */
     }
 
-    #navbar-right-section a, #navbar-right-section button {
-        width: 100%;
-        text-align: left;
-        padding: 0.5rem 0;
-    }
-
-    #navbar-user-info {
-        max-width: 100%;
-        text-align: left;
+    #desktop-nav-links a, #navbar-logout-button {
+        padding: 0.3rem 0.5rem; /* Riduci il padding dei link e del bottone */
+        font-size: 0.9rem; /* Riduci la dimensione del font */
     }
 }
 
@@ -392,7 +394,11 @@ body.dark-mode #authenticated-content {
     .content-header p {
         font-size: 0.9em;
     }
+    #navbar-left-section span {
+        font-size: 0.8rem; /* Riduci ulteriormente dimensione testo scuola su schermi molto piccoli */
+    }
+    #desktop-nav-links a, #navbar-logout-button {
+        font-size: 0.8rem; /* Riduci ulteriormente la dimensione del font */
+        padding: 0.2rem 0.4rem;
+    }
 }
-
-
-

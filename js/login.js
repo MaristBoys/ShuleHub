@@ -205,7 +205,7 @@ function generateDynamicLinks(userData) {
             // Esempio: aggiungi link per ogni classe dell'utente
             userData.classes.forEach(cls => {
                 const link = document.createElement('a');
-                link.href = `../pages/class-detail.html?class=${encodeURIComponent(cls)}`; // Esempio di link dinamico
+                link.href = `/pages/class-detail.html?class=${encodeURIComponent(cls)}`; // Esempio di link dinamico con percorso assoluto
                 link.className = 'menu-link w-full text-left py-2 px-4 rounded';
                 link.textContent = `Classe: ${cls}`;
                 dynamicMenuLinksContainer.appendChild(link);
@@ -318,8 +318,7 @@ function simulateLogin() {
         profile: "Teacher",
         googleName: "Simulato Google Name",
         googlePicture: "https://placehold.co/100x100/aabbcc/ffffff?text=SU",
-        // Aggiungi la proprietà email qui per superare il controllo in upload.js
-        email: "simulato.utente@example.com" 
+        email: "simulato.utente@example.com" // Aggiunto per il controllo in upload.js
     };
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userData', JSON.stringify(mockUserData));
@@ -341,7 +340,7 @@ function simulateLogout() {
 async function loadNavbar() {
     try {
         // Correzione del percorso per la navbar
-        const response = await fetch('../components/navbar.html'); 
+        const response = await fetch('/components/navbar.html'); // Percorso assoluto
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

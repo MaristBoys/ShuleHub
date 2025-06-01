@@ -3,6 +3,11 @@
 // SOSTITUISCI CON L'URL DEL TUO BACKEND RENDER
 const BACKEND_BASE_URL = 'https://google-api-backend-biu7.onrender.com';
 
+// Definisci il percorso base in modo dinamico in base all'hostname.
+// Se l'hostname include 'github.io', si tratta di un deployment su GitHub Pages, quindi includi il nome del repository.
+// Altrimenti (es. per Live Server locale), usa una stringa vuota come percorso base.
+const BASE_PATH = window.location.hostname.includes('github.io') ? '/MwalimuHub' : '';
+
 // Elementi UI (alcuni verranno cercati dopo il caricamento della navbar)
 const googleSignInButton = document.querySelector('.g_id_signin');
 const spinner = document.getElementById('spinner');
@@ -25,7 +30,6 @@ let hamburgerIcon; // Aggiunto per il menu mobile
 // Elementi specifici del menu mobile (integrati da navbar.html)
 let mobileMenuOverlay;
 let uploadLinkMobile;
-// mobileUserInfo rimosso
 let dynamicMenuLinksContainer;
 let dynamicLinksSeparator;
 
@@ -41,7 +45,6 @@ function initializeNavbarListeners() {
     mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
     mobileLogoutLink = document.getElementById('mobile-logout-link'); // Questo è l'unico bottone di logout
     uploadLinkMobile = document.getElementById('upload-link-mobile'); // Link upload mobile
-    // mobileUserInfo rimosso // mobileUserInfo = document.getElementById('mobile-user-info'); // Info utente mobile
     dynamicMenuLinksContainer = document.getElementById('dynamic-menu-links'); // Contenitore link dinamici
     dynamicLinksSeparator = document.getElementById('dynamic-links-separator'); // Separatore link dinamici
 
@@ -104,7 +107,7 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
 
     // Assicurati che gli elementi della navbar siano disponibili prima di manipolarli
     // Aggiunto un setTimeout per riprovare se gli elementi non sono ancora nel DOM
-    if (!mainNavbar || !navbarUserInfo || !mobileLogoutLink || !hamburgerIcon || !uploadLinkMobile || !dynamicMenuLinksContainer || !dynamicLinksSeparator) { // mobileUserInfo rimosso
+    if (!mainNavbar || !navbarUserInfo || !mobileLogoutLink || !hamburgerIcon || !uploadLinkMobile || !dynamicMenuLinksContainer || !dynamicLinksSeparator) {
         console.warn("Elementi della Navbar o dello Spinner non ancora disponibili. Riprovo l'aggiornamento UI...");
         setTimeout(() => updateUIForLoginState(isLoggedIn, userData, clearResult), 100);
         return;
@@ -150,8 +153,6 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
             navbarUserInfo.classList.add('invisible-content'); // Aggiungi la classe per renderlo invisibile
         }
     }
-
-    // mobileUserInfo rimosso da qui
 
     // Gestione del link di logout mobile (presente in navbar.html)
     if (mobileLogoutLink) {
@@ -205,7 +206,8 @@ function generateDynamicLinks(userData) {
             // Esempio: aggiungi link per ogni classe dell'utente
             userData.classes.forEach(cls => {
                 const link = document.createElement('a');
-                link.href = `/pages/class-detail.html?class=${encodeURIComponent(cls)}`; // Esempio di link dinamico con percorso assoluto
+                // Usa BASE_PATH per il link dinamico
+                link.href = `${BASE_PATH}/pages/class-detail.html?class=${encodeURIComponent(cls)}`; 
                 link.className = 'menu-link w-full text-left py-2 px-4 rounded';
                 link.textContent = `Classe: ${cls}`;
                 dynamicMenuLinksContainer.appendChild(link);
@@ -318,7 +320,7 @@ function simulateLogin() {
         profile: "Teacher",
         googleName: "Simulato Google Name",
         googlePicture: "https://placehold.co/100x100/aabbcc/ffffff?text=SU",
-        email: "simulato.utente@example.com" // Aggiunto per il controllo in upload.js
+        email: "simulato.utente@example.com"
     };
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userData', JSON.stringify(mockUserData));
@@ -336,11 +338,11 @@ function simulateLogout() {
 }
 
 
-// Funzione per caricare la navbar (spostata da index.html a login.js)
+// Funzione per caricare la navbar
 async function loadNavbar() {
     try {
-        // Correzione del percorso per la navbar
-        const response = await fetch('/components/navbar.html'); // Percorso assoluto
+        // Usa la variabile BASE_PATH qui
+        const response = await fetch(`${BASE_PATH}/components/navbar.html`); 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }

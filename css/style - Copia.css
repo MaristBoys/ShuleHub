@@ -25,11 +25,11 @@ body.dark-mode {
 /* Header Image */
 .header-image {
     width: 100%;
-    height: 200px; /* Altezza fissa per l'immagine */
+    height: 250px; /* Altezza fissa per l'immagine */
     background-image: url('../assets/header.jpg'); /* Assicurati che il percorso sia corretto */
     background-size: cover;
     background-position: center;
-    margin-bottom: 20px; /* Spazio sotto l'immagine */
+    margin-bottom: 5px; /* Spazio sotto l'immagine */
 }
 
 /* Content Header (Logo, Title, Subtitle) */
@@ -42,7 +42,7 @@ body.dark-mode {
     background-color: #ffffff; /* Sfondo per la sezione header */
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 20px; /* Rimosso il margine negativo per evitare sovrapposizioni */
+    margin-top: 10px; /* Rimosso il margine negativo per evitare sovrapposizioni */
     z-index: 10; /* Assicura che sia sopra l'immagine */
 }
 
@@ -131,7 +131,7 @@ body.dark-mode #theme-toggle:hover {
 main {
     width: 90%;
     max-width: 800px;
-    margin-top: 30px;
+    margin-top: 15px;
     padding-bottom: 50px; /* Spazio per evitare che il contenuto sia tagliato dal footer immaginario */
 }
 
@@ -140,7 +140,7 @@ main {
     display: flex;
     justify-content: center; /* Centra il contenuto (il bottone GSI) */
     align-items: center;
-    margin: 10px auto; /* Centra il wrapper stesso all'interno del suo contenitore (main) */
+    margin: 10px auto; /* Ridotto il margine superiore per avvicinarlo al div sopra */
     width: 100%; /* Assicura che il wrapper prenda tutta la larghezza disponibile per la centratura */
 }
 
@@ -224,7 +224,7 @@ body.dark-mode #authenticated-content {
 
 #main-navbar .container {
     width: 100%; /* Assicura che il contenuto prenda tutta la larghezza disponibile */
-    padding: 0.5rem 1rem; /* Padding orizzontale ridotto per dare più spazio */
+    /* Rimosso padding: 0.5rem 1rem; qui, sarà gestito nelle media query */
     display: flex; /* Assicura il flexbox */
     align-items: center; /* Allinea verticalmente gli elementi */
     justify-content: space-between; /* Spinge i gruppi agli estremi */
@@ -240,14 +240,18 @@ body.dark-mode #authenticated-content {
 }
 
 #navbar-left-section .navbar-logo {
-    height: 28px; /* Altezza ancora più piccola per il logo nella navbar */
-    width: 28px;
+    height: 36px; /* Altezza leggermente più grande */
+    width: 36px; /* Larghezza leggermente più grande */
+    background-color: white; /* Sfondo bianco */
+    padding: 4px; /* Aggiungi padding per far vedere lo sfondo */
+    border-radius: 50%; /* Mantieni la forma circolare */
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Aggiungi una leggera ombra per farlo risaltare */
 }
 
 #navbar-left-section span {
     color: #FFD700; /* Giallo oro per il testo "Mwanza Marist School" */
     font-weight: bold;
-    font-size: 1.1rem; /* Dimensione del testo */
+    font-size: 1.1rem; /* Dimensione del testo per desktop */
     white-space: nowrap; /* Evita che il testo vada a capo */
     overflow: hidden; /* Nasconde il testo che supera */
     text-overflow: ellipsis; /* Aggiunge puntini se il testo è troppo lungo */
@@ -318,13 +322,27 @@ body.dark-mode #authenticated-content {
     color: #FFD700;
 }
 
-/* Assicura che la classe 'hidden' funzioni correttamente per nascondere gli elementi */
+/* Assicura che la classe 'hidden' funzioni correttamente per nascondere gli elementi - tolta gestita da tailwind 
 .hidden {
     display: none !important;
 }
+*/
+/* Responsive Adjustments */
+@media (min-width: 640px) { /* Applica padding standard per schermi più grandi di 'sm' */
+    #main-navbar .container {
+        padding-left: 1rem; /* Default Tailwind container padding */
+        padding-right: 1rem; /* Default Tailwind container padding */
+    }
+}
 
-/* Responsive Adjustments (Adattati per rimuovere il layout mobile specifico della navbar) */
-@media (max-width: 768px) {
+@media (min-width: 768px) { /* Applica padding standard per schermi più grandi di 'md' */
+    #main-navbar .container {
+        padding-left: 1.5rem; /* Default Tailwind container padding for md */
+        padding-right: 1.5rem; /* Default Tailwind container padding for md */
+    }
+}
+
+@media (max-width: 767px) { /* Regole specifiche per schermi piccoli (mobile) */
     .header-image {
         height: 150px;
     }
@@ -356,31 +374,32 @@ body.dark-mode #authenticated-content {
         font-size: 0.9em;
     }
 
-    /* La navbar ora usa il layout desktop anche su mobile */
+    /* Navbar: Regolazioni per mobile */
     #main-navbar .container {
-        flex-direction: row; /* Mantiene gli elementi in riga */
-        justify-content: space-between; /* Spinge gli elementi agli estremi */
-        padding: 0.5rem 0.5rem; /* Padding ridotto per schermi più piccoli */
+        flex-direction: row; 
+        justify-content: space-between;
+        padding-left: 0.5rem; /* Padding orizzontale ridotto per mobile (8px) */
+        padding-right: 0.5rem; /* Padding orizzontale ridotto per mobile (8px) */
     }
 
     #navbar-left-section span {
-        font-size: 1rem; /* Riduci dimensione testo scuola su mobile */
+        font-size: 0.9rem; /* Riduci dimensione testo scuola su mobile per dare più spazio */
     }
 
     #navbar-center-section {
-        display: block; /* Assicurati che sia visibile anche su mobile */
-        flex-grow: 1; /* Permette di occupare lo spazio rimanente */
-        text-align: center; /* Centra il testo utente */
+        display: block; 
+        flex-grow: 1; 
+        text-align: center; 
     }
 
     #desktop-nav-links {
-        display: flex; /* Assicurati che i link desktop siano visibili */
+        display: flex; 
         gap: 0.25rem; /* Riduci ulteriormente lo spazio tra i link su mobile */
     }
 
     #desktop-nav-links a, #navbar-logout-button {
-        padding: 0.3rem 0.5rem; /* Riduci il padding dei link e del bottone */
-        font-size: 0.9rem; /* Riduci la dimensione del font */
+        padding: 0.3rem 0.5rem; 
+        font-size: 0.85rem; /* Riduci la dimensione del font dei link e del bottone */
     }
 }
 
@@ -395,10 +414,10 @@ body.dark-mode #authenticated-content {
         font-size: 0.9em;
     }
     #navbar-left-section span {
-        font-size: 0.8rem; /* Riduci ulteriormente dimensione testo scuola su schermi molto piccoli */
+        font-size: 0.75rem; /* Riduci ulteriormente dimensione testo scuola su schermi molto piccoli */
     }
     #desktop-nav-links a, #navbar-logout-button {
-        font-size: 0.8rem; /* Riduci ulteriormente la dimensione del font */
-        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem; /* Riduci ulteriormente la dimensione del font */
+        padding: 0.2rem 0.3rem;
     }
 }

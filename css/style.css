@@ -62,8 +62,8 @@ body.dark-mode {
 
 /* Stile specifico per il logo nella navbar */
 .navbar-logo {
-    height: 36px;
-    width: 36px;
+    height: 30px; /* Ridotto da 36px */
+    width: 30px;  /* Ridotto da 36px */
     background-color: white;
     padding: 4px;
     border-radius: 50%;
@@ -135,7 +135,8 @@ body.dark-mode #theme-toggle:hover {
 main {
     width: 90%;
     max-width: 800px;
-    margin-top: 15px; /* Spazio sopra il main */
+    margin-top: 0; 
+    padding-top: 70px; /* Ridotto da 80px per dare più spazio */
     padding-bottom: 50px;
     position: relative;
     z-index: 1;
@@ -226,6 +227,8 @@ body.dark-mode #authenticated-content {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombra per staccarla */
     transition: background-color 0.3s ease, box-shadow 0.3s ease;
     z-index: 50; /* Assicurati che sia sopra tutto */
+    padding-top: 0.5rem; /* Ridotto da 1rem */
+    padding-bottom: 0.5rem; /* Ridotto da 1rem */
 }
 
 #main-navbar:hover {
@@ -243,8 +246,7 @@ body.dark-mode #authenticated-content {
 /* Stile per lo spacer della navbar - Deve corrispondere all'altezza della navbar fissa */
 #navbar-spacer {
     width: 100%;
-    height: 60px; /* Altezza fissa della navbar, da adattare se la navbar cambia altezza */
-    /* Rimosso min-height perché ora è un'altezza fissa */
+    height: 50px; /* Adattato per la nuova altezza della navbar (circa 48px + padding) */
 }
 
 /* Parte sinistra della navbar (Logo + Nome Scuola) */
@@ -257,8 +259,8 @@ body.dark-mode #authenticated-content {
 }
 
 #navbar-left-section .navbar-logo {
-    height: 36px;
-    width: 36px;
+    height: 30px;
+    width: 30px;
     background-color: white;
     padding: 4px;
     border-radius: 50%;
@@ -268,7 +270,7 @@ body.dark-mode #authenticated-content {
 #navbar-left-section span {
     color: #FFD700;
     font-weight: bold;
-    font-size: 1.1rem;
+    font-size: 1.0rem; /* Leggermente ridotto */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -281,7 +283,7 @@ body.dark-mode #authenticated-content {
     text-align: center;
     flex-shrink: 1;
     min-width: 0;
-    height: 48px; /* Altezza fissa */
+    height: 40px; /* Altezza fissa ridotta */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -290,7 +292,7 @@ body.dark-mode #authenticated-content {
 
 #navbar-user-info {
     color: white;
-    font-size: 1.1rem;
+    font-size: 1.0rem; /* Leggermente ridotto */
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
@@ -307,9 +309,9 @@ body.dark-mode #authenticated-content {
 
 #hamburger-icon .hamburger-line {
     background-color: #FFD700;
-    height: 3px;
-    width: 25px;
-    margin: 4px 0;
+    height: 2px; /* Ridotto da 3px */
+    width: 20px; /* Ridotto da 25px */
+    margin: 3px 0; /* Ridotto da 4px */
     transition: 0.4s;
 }
 
@@ -368,7 +370,7 @@ body.dark-mode #authenticated-content {
     color: #FFD700;
 }
 
-#mobile-menu-overlay .menu-separator {
+.menu-separator {
     width: 100%;
     height: 1px;
     background-color: rgba(255, 255, 255, 0.2);
@@ -410,7 +412,10 @@ body.dark-mode #authenticated-content {
         padding-right: 1.5rem;
     }
     #navbar-spacer {
-        height: 64px; /* Adatta l'altezza dello spacer per schermi più grandi */
+        height: 55px; /* Adatta l'altezza dello spacer per schermi più grandi */
+    }
+    main {
+        padding-top: 70px; /* Spazio per la navbar fissa + un po' di margine */
     }
 }
 
@@ -455,14 +460,14 @@ body.dark-mode #authenticated-content {
     }
 
     #navbar-left-section span {
-        font-size: 0.9rem;
+        font-size: 0.8rem; /* Ridotto per mobile */
     }
 
     #navbar-center-section {
         display: flex;
         flex-grow: 1; 
         text-align: center; 
-        height: 40px; /* Altezza fissa anche per mobile */
+        height: 36px; /* Altezza fissa anche per mobile */
         align-items: center;
         justify-content: center;
         overflow: hidden;
@@ -484,15 +489,11 @@ body.dark-mode #authenticated-content {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
     }
-    #mobile-user-info {
-        font-size: 0.85rem;
-    }
-    #mobile-user-info img {
-        height: 24px;
-        width: 24px;
-    }
     #navbar-spacer {
-        height: 56px; /* Altezza dello spacer per mobile */
+        height: 48px; /* Altezza dello spacer per mobile */
+    }
+    main {
+        padding-top: 60px; /* Spazio per la navbar fissa + un po' di margine per mobile */
     }
 }
 
@@ -511,7 +512,7 @@ body.dark-mode #authenticated-content {
         font-size: 0.7rem;
     }
     #navbar-center-section {
-        height: 36px;
+        height: 32px; /* Ulteriormente ridotto */
     }
     #mobile-menu-overlay {
         width: 140px;
@@ -528,17 +529,15 @@ body.dark-mode #authenticated-content {
         padding: 0.3rem 0.6rem;
         font-size: 0.75rem;
     }
-    #mobile-user-info {
-        font-size: 0.75rem;
-    }
-    #mobile-user-info img {
-        height: 20px;
-        width: 20px;
-    }
     #navbar-spacer {
-        height: 52px; /* Altezza dello spacer per schermi molto piccoli */
+        height: 45px; /* Altezza dello spacer per schermi molto piccoli */
+    }
+    main {
+        padding-top: 55px; /* Spazio per la navbar fissa + un po' di margine per schermi molto piccoli */
     }
 }
+
+
 
 
 

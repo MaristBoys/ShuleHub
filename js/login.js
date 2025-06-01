@@ -5,9 +5,6 @@ const BACKEND_BASE_URL = 'https://google-api-backend-biu7.onrender.com';
 
 // Elementi UI (alcuni verranno cercati dopo il caricamento della navbar)
 const googleSignInButton = document.querySelector('.g_id_signin');
-// Riferimento al wrapper del pulsante Google
-const googleButtonWrapper = document.querySelector('.google-button-wrapper'); 
-
 const spinner = document.getElementById('spinner');
 const resultDiv = document.getElementById('result');
 const welcomeMessageDiv = document.getElementById('welcome-message');
@@ -21,26 +18,43 @@ const simulateLogoutButton = document.getElementById('simulate-logout-button');
 // Variabili per gli elementi della navbar che verranno inizializzati dopo il caricamento
 let mainNavbar;
 let navbarUserInfo; // Info utente desktop (rimane per la parte centrale della navbar)
-
-// Elementi del menu universale (dropdown)
-let hamburgerIcon;
-let mobileMenuOverlay;
 let mobileLogoutLink; // Bottone logout mobile
 let navbarSpacer; // Mantenuto per riferimento, ma l'altezza è fissa in CSS
+let hamburgerIcon; // Aggiunto per il menu mobile
+
+// Elementi specifici del menu mobile (integrati da navbar.html)
+let mobileMenuOverlay;
+let uploadLinkMobile;
+// mobileUserInfo rimosso
+let dynamicMenuLinksContainer;
+let dynamicLinksSeparator;
+
 
 // Funzione per inizializzare gli event listener della navbar
 function initializeNavbarListeners() {
     mainNavbar = document.getElementById('main-navbar');
     navbarUserInfo = document.getElementById('navbar-user-info');
     navbarSpacer = document.getElementById('navbar-spacer');
+    hamburgerIcon = document.getElementById('hamburger-icon'); // Inizializza hamburgerIcon
 
-    // Elementi del menu universale
-    hamburgerIcon = document.getElementById('hamburger-icon');
+    // Elementi del menu universale (dropdown)
     mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
     mobileLogoutLink = document.getElementById('mobile-logout-link'); // Questo è l'unico bottone di logout
+    uploadLinkMobile = document.getElementById('upload-link-mobile'); // Link upload mobile
+    // mobileUserInfo rimosso // mobileUserInfo = document.getElementById('mobile-user-info'); // Info utente mobile
+    dynamicMenuLinksContainer = document.getElementById('dynamic-menu-links'); // Contenitore link dinamici
+    dynamicLinksSeparator = document.getElementById('dynamic-links-separator'); // Separatore link dinamici
+
 
     // Associa l'evento al bottone di logout (unico)
-    if (mobileLogoutLink) mobileLogoutLink.addEventListener('click', logout);
+    if (mobileLogoutLink) {
+        mobileLogoutLink.addEventListener('click', () => {
+            logout(); // Chiama la funzione logout globale
+            if (mobileMenuOverlay) {
+                mobileMenuOverlay.classList.add('hidden'); // Chiudi il menu dopo il logout
+            }
+        });
+    }
 
     // Gestione dello sfondo della navbar al passaggio del mouse
     if (mainNavbar) {
@@ -59,7 +73,7 @@ function initializeNavbarListeners() {
         });
     }
 
-    // Listener per i pulsanti di simulazione
+    // Listener per i pulsanti di simulazione (se presenti nella pagina)
     if (simulateLoginButton) simulateLoginButton.addEventListener('click', simulateLogin);
     if (simulateLogoutButton) simulateLogoutButton.addEventListener('click', simulateLogout);
 
@@ -83,61 +97,132 @@ function initializeNavbarListeners() {
 
 // Funzione per aggiornare la UI in base allo stato di login
 function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) {
-    // Assicurati che gli elementi della navbar e lo spacer siano disponibili
-    if (!mainNavbar || !navbarUserInfo || !navbarSpacer || !mobileLogoutLink || !hamburgerIcon || !googleButtonWrapper) {
-        console.warn("Navbar elements or spacer not yet available. Retrying UI update...");
+    // Assicurati che gli elementi della navbar e lo spinner siano disponibili
+    // Nota: googleSignInButton e authenticatedContent potrebbero non esistere in upload.html, quindi controlliamo la loro esistenza.
+    const currentGoogleSignInButton = document.querySelector('.g_id_signin');
+    const currentAuthenticatedContent = document.getElementById('authenticated-content');
+
+    // Assicurati che gli elementi della navbar siano disponibili prima di manipolarli
+    // Aggiunto un setTimeout per riprovare se gli elementi non sono ancora nel DOM
+    if (!mainNavbar || !navbarUserInfo || !mobileLogoutLink || !hamburgerIcon || !uploadLinkMobile || !dynamicMenuLinksContainer || !dynamicLinksSeparator) { // mobileUserInfo rimosso
+        console.warn("Elementi della Navbar o dello Spinner non ancora disponibili. Riprovo l'aggiornamento UI...");
         setTimeout(() => updateUIForLoginState(isLoggedIn, userData, clearResult), 100);
         return;
     }
 
-    if (isLoggedIn) {
-        // Nascondi il wrapper del pulsante Google aggiungendo la classe hidden
-        googleButtonWrapper.classList.add('hidden'); 
-        authenticatedContent.style.display = 'block';
-        hamburgerIcon.classList.remove('hidden'); // Mostra l'icona hamburger
+    // Gestione del pulsante Google Sign-In (presente solo in index.html)
+    if (currentGoogleSignInButton) {
+        if (isLoggedIn) {
+            currentGoogleSignInButton.classList.add('hidden');
+        } else {
+            currentGoogleSignInButton.classList.remove('hidden');
+        }
+    }
 
-        // Aggiorna info utente desktop (parte centrale della navbar)
-        if (userData) {
+    // Gestione del contenuto autenticato (presente solo in index.html)
+    if (currentAuthenticatedContent) {
+        if (isLoggedIn) {
+            currentAuthenticatedContent.style.display = 'block';
+        } else {
+            currentAuthenticatedContent.style.display = 'none';
+        }
+    }
+
+    // Gestione dell'icona hamburger (presente in navbar.html)
+    if (hamburgerIcon) {
+        if (isLoggedIn) {
+            hamburgerIcon.classList.remove('hidden'); // Mostra l'icona hamburger
+        } else {
+            hamburgerIcon.classList.add('hidden'); // Nasconde l'icona hamburger
+        }
+    }
+
+    // Aggiorna info utente desktop (parte centrale della navbar)
+    if (navbarUserInfo) {
+        if (isLoggedIn && userData) {
             navbarUserInfo.innerHTML = `
                 <img src="${userData.googlePicture}" alt="Profile" class="inline-block h-8 w-8 rounded-full mr-2 border border-gray-300">
                 <span>${userData.googleName} (${userData.profile})</span>
             `;
             navbarUserInfo.classList.remove('invisible-content'); // Rimuovi la classe per renderlo visibile
         } else {
-            navbarUserInfo.innerHTML = '';
+            navbarUserInfo.innerHTML = ''; // Pulisci il contenuto
             navbarUserInfo.classList.add('invisible-content'); // Aggiungi la classe per renderlo invisibile
         }
-        
-        welcomeMessageDiv.textContent = 'Benvenuto! Sei loggato.'; 
-
-    } else {
-        // Mostra il wrapper del pulsante Google rimuovendo la classe hidden
-        googleButtonWrapper.classList.remove('hidden'); 
-        authenticatedContent.style.display = 'none';
-        hamburgerIcon.classList.add('hidden'); // Nasconde l'icona hamburger
-        
-        navbarUserInfo.innerHTML = ''; // Pulisci il contenuto
-        navbarUserInfo.classList.add('invisible-content'); // Rendi invisibile
-        mobileLogoutLink.classList.add('hidden'); // Nasconde il bottone logout nel menu
-
-        welcomeMessageDiv.textContent = '';
     }
-    spinner.style.display = 'none';
 
-    // Rimosso il ricalcolo dell'altezza dello spacer, ora è fisso in CSS
-    // if (mainNavbar && navbarSpacer) {
-    //     const navbarHeight = mainNavbar.offsetHeight;
-    //     navbarSpacer.style.height = `${navbarHeight}px`;
-    // }
+    // mobileUserInfo rimosso da qui
+
+    // Gestione del link di logout mobile (presente in navbar.html)
+    if (mobileLogoutLink) {
+        if (isLoggedIn) {
+            mobileLogoutLink.classList.remove('hidden'); // Mostra il bottone logout nel menu
+        } else {
+            mobileLogoutLink.classList.add('hidden'); // Nasconde il bottone logout nel menu
+        }
+    }
+
+    // Mostra il link Upload solo se l'utente è un 'teacher'
+    if (uploadLinkMobile) {
+        if (isLoggedIn && userData && userData.profile === 'Teacher') { // Assumendo che il ruolo sia 'Teacher'
+            uploadLinkMobile.classList.remove('hidden');
+        } else {
+            uploadLinkMobile.classList.add('hidden');
+        }
+    }
+
+    // Genera i link dinamici (es. per le classi o materie)
+    if (dynamicMenuLinksContainer) {
+        generateDynamicLinks(userData); // Chiama la funzione per popolare i link dinamici
+    }
+
+    // Mostra il separatore se ci sono link dinamici
+    if (dynamicLinksSeparator) {
+        if (dynamicMenuLinksContainer && dynamicMenuLinksContainer.children.length > 0) {
+            dynamicLinksSeparator.classList.remove('hidden');
+        } else {
+            dynamicLinksSeparator.classList.add('hidden');
+        }
+    }
+    
+    // Messaggio di benvenuto (presente solo in index.html)
+    if (welcomeMessageDiv) {
+        if (isLoggedIn) {
+            welcomeMessageDiv.textContent = 'Benvenuto! Sei loggato.';
+        } else {
+            welcomeMessageDiv.textContent = '';
+        }
+    }
+
+    if (spinner) spinner.style.display = 'none';
 }
+
+// Funzione per generare link dinamici (esempio: per classi o materie)
+function generateDynamicLinks(userData) {
+    if (dynamicMenuLinksContainer) {
+        dynamicMenuLinksContainer.innerHTML = ''; // Pulisci i link esistenti
+        if (userData && userData.classes && userData.classes.length > 0) {
+            // Esempio: aggiungi link per ogni classe dell'utente
+            userData.classes.forEach(cls => {
+                const link = document.createElement('a');
+                link.href = `../pages/class-detail.html?class=${encodeURIComponent(cls)}`; // Esempio di link dinamico
+                link.className = 'menu-link w-full text-left py-2 px-4 rounded';
+                link.textContent = `Classe: ${cls}`;
+                dynamicMenuLinksContainer.appendChild(link);
+            });
+        }
+        // Puoi aggiungere logica simile per materie, stanze, ecc.
+    }
+}
+
 
 // Funzione di callback per Google Identity Services
 async function handleCredentialResponse(response) {
     const idToken = response.credential;
     console.log("Received idToken from Google:", idToken);
 
-    spinner.style.display = 'block';
-    resultDiv.innerHTML = ''; // Puliamo il resultDiv qui all'inizio di ogni tentativo
+    if (spinner) spinner.style.display = 'block';
+    if (resultDiv) resultDiv.innerHTML = ''; // Puliamo il resultDiv qui all'inizio di ogni tentativo
 
     try {
         const res = await fetch(`${BACKEND_BASE_URL}/api/google-login`, {
@@ -152,24 +237,24 @@ async function handleCredentialResponse(response) {
         console.log('Backend response:', data);
 
         if (data.success) {
-            resultDiv.innerHTML = `<p class="text-green-600 font-semibold">Accesso riuscito!</p>`;
+            if (resultDiv) resultDiv.innerHTML = `<p class="text-green-600 font-semibold">Accesso riuscito!</p>`;
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('userData', JSON.stringify(data)); 
             updateUIForLoginState(true, data); 
         } else {
-            resultDiv.innerHTML = `<p style="color:red;">Accesso negato: ${data.message}</p>`;
+            if (resultDiv) resultDiv.innerHTML = `<p style="color:red;">Accesso negato: ${data.message}</p>`;
             localStorage.removeItem('isLoggedIn');
             localStorage.removeItem('userData');
             updateUIForLoginState(false, null, false); 
         }
     } catch (error) {
         console.error('Error contacting backend:', error);
-        resultDiv.innerHTML = `<p style="color:red;">Errore nel contattare il backend</p>`;
+        if (resultDiv) resultDiv.innerHTML = `<p style="color:red;">Errore nel contattare il backend</p>`;
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userData');
         updateUIForLoginState(false, null, false);
     } finally {
-        spinner.style.display = 'none';
+        if (spinner) spinner.style.display = 'none';
     }
 }
 
@@ -193,7 +278,7 @@ async function logout() {
     } finally {
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('userData');
-        resultDiv.innerHTML = ''; 
+        if (resultDiv) resultDiv.innerHTML = ''; 
         // Chiudi il menu universale se aperto al logout
         if (mobileMenuOverlay) {
             mobileMenuOverlay.classList.add('hidden');
@@ -204,14 +289,13 @@ async function logout() {
             google.accounts.id.disableAutoSelect();
             console.log('Google auto-select disabilitato.');
 
-            // *** NUOVA LOGICA: Forzare il re-rendering del pulsante Google ***
+            // *** Forzare il re-rendering del pulsante Google (solo se presente nella pagina) ***
             const googleButtonContainer = document.querySelector('.g_id_signin');
             if (googleButtonContainer) {
-                // Pulisci qualsiasi contenuto esistente che Google potrebbe aver renderizzato (es. iframe)
                 googleButtonContainer.innerHTML = ''; 
                 google.accounts.id.renderButton(
-                    googleButtonContainer, // Il div dove il pulsante dovrebbe essere renderizzato
-                    {   // Configurazione del pulsante, deve corrispondere a quella in index.html
+                    googleButtonContainer, 
+                    {   
                         type: "standard",
                         size: "large",
                         theme: "outline",
@@ -226,32 +310,79 @@ async function logout() {
     }
 }
 
-// Funzione per simulare il login
+// Funzione per simulare il login (se presente nella pagina)
 function simulateLogin() {
     console.log("Simulating login...");
     const mockUserData = {
         name: "Simulato Utente",
         profile: "Teacher",
         googleName: "Simulato Google Name",
-        googlePicture: "https://placehold.co/100x100/aabbcc/ffffff?text=SU" // Esempio URL immagine
+        googlePicture: "https://placehold.co/100x100/aabbcc/ffffff?text=SU",
+        // Aggiungi la proprietà email qui per superare il controllo in upload.js
+        email: "simulato.utente@example.com" 
     };
     localStorage.setItem('isLoggedIn', 'true');
     localStorage.setItem('userData', JSON.stringify(mockUserData));
-    resultDiv.innerHTML = `<p class="text-green-600 font-semibold">Simulazione di Accesso Riuscita!</p>`;
+    if (resultDiv) resultDiv.innerHTML = `<p class="text-green-600 font-semibold">Simulazione di Accesso Riuscita!</p>`;
     updateUIForLoginState(true, mockUserData);
 }
 
-// Funzione per simulare il logout
+// Funzione per simulare il logout (se presente nella pagina)
 function simulateLogout() {
     console.log("Simulating logout...");
     localStorage.removeItem('isLoggedIn');
     localStorage.removeItem('userData');
-    resultDiv.innerHTML = `<p class="text-gray-600 font-semibold">Simulazione di Logout Riuscita!</p>`;
+    if (resultDiv) resultDiv.innerHTML = `<p class="text-gray-600 font-semibold">Simulazione di Logout Riuscita!</p>`;
     updateUIForLoginState(false);
+}
+
+
+// Funzione per caricare la navbar (spostata da index.html a login.js)
+async function loadNavbar() {
+    try {
+        // Correzione del percorso per la navbar
+        const response = await fetch('../components/navbar.html'); 
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const navbarHtml = await response.text();
+        const navbarPlaceholder = document.getElementById('navbar-placeholder');
+        if (navbarPlaceholder) {
+            navbarPlaceholder.innerHTML = navbarHtml;
+        }
+        
+        // Una volta che la navbar è stata caricata nel DOM, inizializza i suoi listener
+        initializeNavbarListeners();
+
+        // Carica lo stato di login iniziale dopo che la navbar è stata caricata e inizializzata
+        let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        let userData = null;
+        if (isLoggedIn) {
+            try {
+                userData = JSON.parse(localStorage.getItem('userData'));
+            } catch (e) {
+                console.error("Errore nel parsing di userData da localStorage:", e);
+                localStorage.removeItem('isLoggedIn');
+                localStorage.removeItem('userData');
+                isLoggedIn = false;
+            }
+        }
+        updateUIForLoginState(isLoggedIn, userData);
+
+    } catch (error) {
+        console.error("Errore nel caricamento della navbar:", error);
+        const navbarPlaceholder = document.getElementById('navbar-placeholder');
+        if (navbarPlaceholder) {
+            navbarPlaceholder.innerHTML = '<nav id="main-navbar" class="bg-red-800 text-white p-4 fixed w-full top-0 z-50">Errore nel caricamento della Navbar</nav>';
+        }
+    }
 }
 
 // Inizializzazione principale al caricamento del DOM
 document.addEventListener('DOMContentLoaded', () => {
+    // Carica la navbar all'avvio di OGNI pagina che include login.js
+    loadNavbar();
+
     if (themeToggleButton) {
         themeToggleButton.addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
@@ -259,7 +390,5 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// Espone la funzione per l'inizializzazione esterna (chiamata da index.html dopo il caricamento della navbar)
-window.initializeNavbarElements = initializeNavbarListeners;
-
-
+// Espone la funzione per l'inizializzazione esterna (se altri script volessero usarla, anche se ora è interna)
+window.loadNavbar = loadNavbar;

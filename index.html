@@ -31,7 +31,7 @@
     </header>
 
     <main class="container mx-auto px-4 py-8">
-        <div class="google-button-wrapper flex justify-center mt-4 hidden"> 
+        <div class="google-button-wrapper">
             <div id="g_id_onload"
                  data-client_id="651622332732-hqg898c50786ii5rpa4iieo43gb6kmc8.apps.googleusercontent.com"
                  data-callback="handleCredentialResponse"
@@ -62,45 +62,7 @@
         </div>
     </main>
 
-    <script>
-        // Funzione per caricare la navbar
-        async function loadNavbar() {
-            try {
-                const response = await fetch('components/navbar.html'); 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const navbarHtml = await response.text();
-                document.getElementById('navbar-placeholder').innerHTML = navbarHtml;
-                // Una volta che la navbar è stata caricata nel DOM, inizializza i suoi listener
-                if (window.initializeNavbarElements) {
-                    window.initializeNavbarElements();
-                }
-
-                // Carica lo stato di login iniziale dopo che la navbar è stata caricata e inizializzata
-                let isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-                let userData = null;
-                if (isLoggedIn) {
-                    try {
-                        userData = JSON.parse(localStorage.getItem('userData'));
-                    } catch (e) {
-                        console.error("Errore nel parsing di userData da localStorage:", e);
-                        localStorage.removeItem('isLoggedIn');
-                        localStorage.removeItem('userData');
-                        isLoggedIn = false;
-                    }
-                }
-                updateUIForLoginState(isLoggedIn, userData);
-
-            } catch (error) {
-                console.error("Errore nel caricamento della navbar:", error);
-            }
-        }
-
-        // Carica la navbar quando il DOM è completamente caricato
-        document.addEventListener('DOMContentLoaded', loadNavbar);
-    </script>
-
 </body>
 </html>
+
 

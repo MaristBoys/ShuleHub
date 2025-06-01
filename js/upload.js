@@ -1,7 +1,7 @@
 // js/upload.js
 
 // Assicurati che BACKEND_BASE_URL sia definito. Se non lo è, prendilo da login.js o definiscilo qui.
-const BACKEND_BASE_URL = 'https://google-api-backend-biu7.onrender.com';
+//const BACKEND_BASE_URL = 'https://google-api-backend-biu7.onrender.com';
 
 // Riferimenti agli elementi del form e dello spinner
 const uploadForm = document.getElementById('upload-form');
@@ -21,17 +21,40 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
-    // Inizialmente disabilita il form e mostra lo spinner per il caricamento dei dropdown
-    if (uploadForm) uploadForm.disabled = true;
+    // --- SNIPPET DI CONTROLLO LOGIN ---
+    const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+    const userData = JSON.parse(localStorage.getItem('userData'));
+
+    if (!isLoggedIn || !userData || !userData.email) { 
+        // Utente non loggato o dati utente mancanti/invalidi
+        if (uploadForm) uploadForm.style.display = 'none'; // Nascondi il form
+        if (uploadButton) uploadButton.disabled = true;
+        if (uploadSpinner) {
+            uploadSpinner.classList.add('hidden');
+            uploadSpinner.style.display = 'none';
+        }
+        if (uploadStatus) {
+            uploadStatus.textContent = 'Please log in to upload documents.';
+            uploadStatus.className = 'ml-4 text-lg font-semibold text-red-600';
+        }
+        // Reindirizza alla pagina di login dopo un breve ritardo
+        setTimeout(() => {
+            window.location.href = '../index.html'; 
+        }, 3000); 
+        return; // Ferma l'esecuzione dello script qui
+    }
+    // --- FINE SNIPPET DI CONTROLLO LOGIN ---
+
+    // Se l'utente è loggato, procedi con il caricamento dei dati del form
+    if (uploadForm) uploadForm.disabled = true; // Disabilita mentre carica i dropdown
     if (uploadButton) uploadButton.disabled = true;
     if (uploadSpinner) {
         uploadSpinner.classList.remove('hidden');
         uploadSpinner.style.display = 'block';
     }
-    if (uploadStatus) uploadStatus.textContent = 'Loading form data...';
+    if (uploadStatus) uploadStatus.textContent = 'Caricamento dati form...';
     
-    // Popola i campi del form
-    prefillAuthor();
+    prefillAuthor(); // Popola l'autore con i dati dell'utente loggato
     await populateDropdowns();
 
     // Una volta caricati i dropdown, riabilita il form e nascondi lo spinner
@@ -41,9 +64,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         uploadSpinner.classList.add('hidden');
         uploadSpinner.style.display = 'none';
     }
-    if (uploadStatus) uploadStatus.textContent = ''; // Pulisci il messaggio di caricamento iniziale
+    if (uploadStatus) uploadStatus.textContent = ''; 
 
-    // Aggiungi listener per il submit del form
     if (uploadForm) {
         uploadForm.addEventListener('submit', handleUpload);
     }
@@ -56,7 +78,7 @@ function prefillAuthor() {
     if (authorInput && userData && userData.googleName) {
         authorInput.value = userData.googleName;
     } else {
-        authorInput.value = 'Unknown Author'; // Fallback
+        authorInput.value = 'Autore Sconosciuto'; // Fallback tradotto
     }
 }
 
@@ -74,10 +96,10 @@ async function populateDropdowns() {
         try {
             const response = await fetch(`${BACKEND_BASE_URL}/api/${endpoint}`);
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(`Errore HTTP! status: ${response.status}`); // Tradotto
             }
             const data = await response.json();
-            selectElement.innerHTML = '<option value="">Select an option</option>'; // Reset dopo il caricamento
+            selectElement.innerHTML = '<option value="">Seleziona un\'opzione</option>'; // Tradotto
             if (data && data.length > 0) {
                 data.forEach(item => {
                     const option = document.createElement('option');
@@ -86,21 +108,21 @@ async function populateDropdowns() {
                     selectElement.appendChild(option);
                 });
             } else {
-                selectElement.innerHTML = `<option value="">No options available</option>`;
+                selectElement.innerHTML = `<option value="">Nessuna opzione disponibile</option>`; // Tradotto
             }
         } catch (error) {
-            console.error(`Error fetching ${endpoint}:`, error);
+            console.error(`Errore nel recupero ${endpoint}:`, error); // Tradotto
             selectElement.innerHTML = `<option value="">${errorText}</option>`;
         }
     };
 
     // Popola i dropdown in parallelo
     await Promise.all([
-        fetchAndPopulate(yearSelect, 'drive/years', 'Loading Years...', 'Error loading Years'),
-        fetchAndPopulate(subjectSelect, 'sheets/subjects', 'Loading Subjects...', 'Error loading Subjects'),
-        fetchAndPopulate(formSelect, 'sheets/forms', 'Loading Forms...', 'Error loading Forms'),
-        fetchAndPopulate(roomSelect, 'sheets/rooms', 'Loading Rooms...', 'Error loading Rooms'),
-        fetchAndPopulate(documentTypeSelect, 'sheets/types', 'Loading Document Types...', 'Error loading Document Types')
+        fetchAndPopulate(yearSelect, 'drive/years', 'Caricamento Anni...', 'Errore nel caricamento degli Anni'), // Tradotto
+        fetchAndPopulate(subjectSelect, 'sheets/subjects', 'Caricamento Materie...', 'Errore nel caricamento delle Materie'), // Tradotto
+        fetchAndPopulate(formSelect, 'sheets/forms', 'Caricamento Classi...', 'Errore nel caricamento delle Classi'), // Tradotto
+        fetchAndPopulate(roomSelect, 'sheets/rooms', 'Caricamento Stanze...', 'Errore nel caricamento delle Stanze'), // Tradotto
+        fetchAndPopulate(documentTypeSelect, 'sheets/types', 'Caricamento Tipi di Documento...', 'Errore nel caricamento dei Tipi di Documento') // Tradotto
     ]);
 }
 
@@ -112,7 +134,7 @@ async function handleUpload(event) {
     uploadButton.disabled = true;
     uploadSpinner.classList.remove('hidden');
     uploadSpinner.style.display = 'block';
-    uploadStatus.textContent = 'Uploading...';
+    uploadStatus.textContent = 'Caricamento in corso...'; // Tradotto
     uploadStatus.className = 'ml-4 text-sm font-semibold text-blue-600';
 
     const formData = new FormData();
@@ -120,7 +142,7 @@ async function handleUpload(event) {
 
     // Verifica se un file è stato selezionato
     if (!fileInput.files || fileInput.files.length === 0) {
-        uploadStatus.textContent = 'Upload Failed: Please select a file.';
+        uploadStatus.textContent = 'Caricamento Fallito: Seleziona un file.'; // Tradotto
         uploadStatus.className = 'ml-4 text-sm font-semibold text-red-600';
         uploadButton.disabled = false;
         uploadSpinner.classList.add('hidden');
@@ -151,18 +173,18 @@ async function handleUpload(event) {
         const result = await response.json();
 
         if (response.ok && result.success) {
-            uploadStatus.textContent = 'Upload Successful!';
+            uploadStatus.textContent = 'Caricamento Riuscito!'; // Tradotto
             uploadStatus.className = 'ml-4 text-sm font-semibold text-green-600';
             document.getElementById('upload-form').reset(); // Resetta il form
             prefillAuthor(); // Pre-riempi di nuovo l'autore dopo il reset
         } else {
-            const errorMessage = result.message || 'Unknown error occurred.';
-            uploadStatus.textContent = `Upload Failed: ${errorMessage}`;
+            const errorMessage = result.message || 'Si è verificato un errore sconosciuto.'; // Tradotto
+            uploadStatus.textContent = `Caricamento Fallito: ${errorMessage}`; // Tradotto
             uploadStatus.className = 'ml-4 text-sm font-semibold text-red-600';
         }
     } catch (error) {
-        console.error('Error during upload:', error);
-        uploadStatus.textContent = `Upload Failed: ${error.message}`;
+        console.error('Errore durante il caricamento:', error); // Tradotto
+        uploadStatus.textContent = `Caricamento Fallito: ${error.message}`; // Tradotto
         uploadStatus.className = 'ml-4 text-sm font-semibold text-red-600';
     } finally {
         uploadButton.disabled = false;

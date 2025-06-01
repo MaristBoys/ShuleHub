@@ -10,10 +10,9 @@ body {
     align-items: center;
     justify-content: flex-start;
     margin: 0;
-    /* Rimosso padding-top fisso, ora gestito dinamicamente dallo spacer */
     padding-top: 0; 
     transition: background-color 0.3s ease, color 0.3s ease;
-    min-height: 100vh; /* Assicura che il body occupi almeno l'intera altezza della viewport */
+    min-height: 100vh;
 }
 
 /* Dark mode styles */
@@ -22,7 +21,7 @@ body.dark-mode {
     color: #f0f0f0;
 }
 
-/* Header Image */
+/* Header Image - Ora scorre con il contenuto */
 .header-image {
     width: 100%;
     height: 250px; /* Altezza fissa per l'immagine */
@@ -30,20 +29,21 @@ body.dark-mode {
     background-size: cover;
     background-position: center;
     margin-bottom: 5px; /* Spazio sotto l'immagine */
+    /* Rimosso position: fixed */
 }
 
-/* Content Header (Logo, Title, Subtitle) */
+/* Content Header (Logo, Title, Subtitle) - Ora scorre con il contenuto */
 .content-header {
     width: 90%; /* Larghezza responsiva */
     max-width: 800px;
     text-align: center;
     padding: 20px;
     position: relative;
-    background-color: #ffffff; /* Sfondo per la sezione header */
+    background-color: #ffffff; /* Sfondo bianco */
     border-radius: 10px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    margin-top: 10px; /* Rimosso il margine negativo per evitare sovrapposizioni */
-    z-index: 10; /* Assicura che sia sopra l'immagine */
+    margin-top: 10px; /* Margine superiore normale */
+    z-index: 10;
 }
 
 .logo-title {
@@ -56,36 +56,39 @@ body.dark-mode {
 .logo {
     width: 80px;
     height: 80px;
-    border-radius: 50%; /* Rendi il logo circolare */
+    border-radius: 50%;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Stile specifico per il logo nella navbar */
 .navbar-logo {
-    height: 36px; /* Altezza leggermente più grande */
-    width: 36px; /* Larghezza leggermente più grande */
-    background-color: white; /* Sfondo bianco */
-    padding: 4px; /* Aggiungi padding per far vedere lo sfondo */
-    border-radius: 50%; /* Mantieni la forma circolare */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Aggiungi una leggera ombra per farlo risaltare */
+    height: 36px;
+    width: 36px;
+    background-color: white;
+    padding: 4px;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .content-header h1 {
     font-size: 2.5em;
     margin: 10px 0 5px 0;
-    color: #333;
+    color: #333; /* Colore testo normale */
+    text-shadow: none; /* Rimuovi text-shadow */
 }
 
 .content-header h2 {
     font-size: 1.5em;
     margin: 0;
-    color: #555;
+    color: #555; /* Colore testo normale */
+    text-shadow: none;
 }
 
 .content-header p {
     font-size: 1.2em;
     margin: 0;
-    color: #777;
+    color: #777; /* Colore testo normale */
+    text-shadow: none;
 }
 
 /* Theme Toggle Button */
@@ -101,6 +104,7 @@ body.dark-mode {
     font-size: 1em;
     transition: background 0.3s ease, color 0.3s ease;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: #333; /* Testo scuro per contrasto con sfondo chiaro */
 }
 
 #theme-toggle:hover {
@@ -131,34 +135,35 @@ body.dark-mode #theme-toggle:hover {
 main {
     width: 90%;
     max-width: 800px;
-    margin-top: 15px;
-    padding-bottom: 50px; /* Spazio per evitare che il contenuto sia tagliato dal footer immaginario */
+    margin-top: 15px; /* Spazio sopra il main */
+    padding-bottom: 50px;
+    position: relative;
+    z-index: 1;
 }
 
 /* Nuovo wrapper per centrare il bottone Google */
 .google-button-wrapper {
     display: flex;
-    justify-content: center; /* Centra il contenuto (il bottone GSI) */
+    justify-content: center;
     align-items: center;
-    margin: 10px auto; /* Ridotto il margine superiore per avvicinarlo al div sopra */
-    width: 100%; /* Assicura che il wrapper prenda tutta la larghezza disponibile per la centratura */
+    margin: 10px auto;
+    width: 100%;
 }
 
 /* Google Sign-In Button (solo stili di transizione, la centratura è nel wrapper) */
 .google-button {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-    /* Rimosso margin, display, justify-content, align-items da qui */
 }
 
 .google-button:hover {
-    transform: scale(1.03); /* Leggermente più piccolo per evitare overflow */
+    transform: scale(1.03);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Spinner */
 .spinner {
     border: 4px solid rgba(0, 0, 0, 0.1);
-    border-left-color: #3b82f6; /* Blu */
+    border-left-color: #3b82f6;
     border-radius: 50%;
     width: 30px;
     height: 30px;
@@ -177,7 +182,7 @@ main {
     margin-top: 20px;
     padding: 10px;
     border-radius: 8px;
-    background-color: #e0f2f7; /* Sfondo leggero per i messaggi */
+    background-color: #e0f2f7;
     color: #0073e6;
     font-weight: 500;
 }
@@ -211,82 +216,98 @@ body.dark-mode #authenticated-content {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Navbar Styles */
+/* Navbar Styles - Torna a essere fissa con sfondo */
 #main-navbar {
-    background-color: rgba(0, 0, 0, 0.4); /* Sfondo trasparente iniziale */
-    width: 100%; /* Assicura che la navbar prenda tutta la larghezza */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    background-color: rgba(0, 0, 0, 0.9); /* Sfondo scuro e opaco di default */
+    position: fixed; /* Rimane fissa in cima */
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Ombra per staccarla */
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    z-index: 50; /* Assicurati che sia sopra tutto */
 }
 
 #main-navbar:hover {
     background-color: rgba(64, 64, 64, 0.9); /* Sfondo grigio scuro al hover */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 #main-navbar .container {
-    width: 100%; /* Assicura che il contenuto prenda tutta la larghezza disponibile */
-    display: flex; /* Assicura il flexbox */
-    align-items: center; /* Allinea verticalmente gli elementi */
-    justify-content: space-between; /* Spinge i gruppi agli estremi */
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Stile per lo spacer della navbar - Deve corrispondere all'altezza della navbar fissa */
+#navbar-spacer {
+    width: 100%;
+    height: 60px; /* Altezza fissa della navbar, da adattare se la navbar cambia altezza */
+    /* Rimosso min-height perché ora è un'altezza fissa */
 }
 
 /* Parte sinistra della navbar (Logo + Nome Scuola) */
 #navbar-left-section {
     display: flex;
     align-items: center;
-    gap: 0.5rem; /* Spazio ridotto tra logo e testo */
-    flex-shrink: 1; /* Permette a questo gruppo di restringersi */
-    min-width: 0; /* Importante per evitare overflow con flexbox */
+    gap: 0.5rem;
+    flex-shrink: 1;
+    min-width: 0;
 }
 
 #navbar-left-section .navbar-logo {
-    height: 36px; /* Altezza leggermente più grande */
-    width: 36px; /* Larghezza leggermente più grande */
-    background-color: white; /* Sfondo bianco */
-    padding: 4px; /* Aggiungi padding per far vedere lo sfondo */
-    border-radius: 50%; /* Mantieni la forma circolare */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2); /* Aggiungi una leggera ombra per farlo risaltare */
+    height: 36px;
+    width: 36px;
+    background-color: white;
+    padding: 4px;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 #navbar-left-section span {
-    color: #FFD700; /* Giallo oro per il testo "Mwanza Marist School" */
+    color: #FFD700;
     font-weight: bold;
-    font-size: 1.1rem; /* Dimensione del testo per desktop */
-    white-space: nowrap; /* Evita che il testo vada a capo */
-    overflow: hidden; /* Nasconde il testo che supera */
-    text-overflow: ellipsis; /* Aggiunge puntini se il testo è troppo lungo */
-    min-width: 0; /* Permette al testo di restringersi */
-}
-
-
-/* Parte centrale della navbar (Dati Utente) */
-#navbar-center-section {
-    flex-grow: 1; /* Permette di occupare lo spazio rimanente */
-    text-align: center; /* Centra il testo utente */
-    flex-shrink: 1; /* Permette a questo gruppo di restringersi */
-    min-width: 0; /* Importante per evitare overflow con flexbox */
-}
-
-#navbar-user-info {
-    color: white; /* Colore bianco per i dati utente */
     font-size: 1.1rem;
-    font-weight: 600; /* Semibold */
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    max-width: 100%; /* Permette che prenda tutta la larghezza disponibile nel suo contenitore */
-    display: inline-block; /* Per applicare max-width e text-overflow */
-    min-width: 0; /* Fondamentale per il corretto funzionamento di overflow: hidden in flexbox */
+    min-width: 0;
+}
+
+/* Parte centrale della navbar (Dati Utente) */
+#navbar-center-section {
+    flex-grow: 1;
+    text-align: center;
+    flex-shrink: 1;
+    min-width: 0;
+    height: 48px; /* Altezza fissa */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+#navbar-user-info {
+    color: white;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    display: inline-block;
+    min-width: 0;
 }
 
 /* Stili per l'icona hamburger */
 #hamburger-icon {
-    /* display: block; Rimosso per permettere a Tailwind hidden di funzionare */
-    position: relative; /* Necessario per posizionare il dropdown al suo interno */
+    position: relative;
 }
 
-#hamburger-icon .hamburger-line { /* Stile per le barre dell'hamburger */
-    background-color: #FFD700; /* Colore giallo */
-    height: 3px; /* Rende le linee più "bold" */
+#hamburger-icon .hamburger-line {
+    background-color: #FFD700;
+    height: 3px;
     width: 25px;
     margin: 4px 0;
     transition: 0.4s;
@@ -294,21 +315,21 @@ body.dark-mode #authenticated-content {
 
 /* Stili per l'overlay del menu universale (ora un dropdown) */
 #mobile-menu-overlay {
-    position: absolute; /* Posizionato rispetto a #hamburger-icon */
-    right: 0; /* Allineato a destra dell'hamburger */
-    top: 100%; /* Appare sotto l'hamburger */
-    margin-top: 8px; /* Spazio sotto l'hamburger */
-    width: 200px; /* Larghezza fissa per il dropdown */
-    background-color: #1f1f1f; /* Sfondo scuro per il dropdown */
+    position: absolute;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    width: 200px;
+    background-color: #1f1f1f;
     border-radius: 0.5rem;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     padding: 1rem;
-    display: flex; /* Assicura flexbox per il contenuto interno */
-    flex-direction: column; /* Contenuto in colonna */
-    align-items: flex-start; /* Allinea il testo a sinistra */
-    opacity: 0; /* Inizialmente trasparente */
-    visibility: hidden; /* Nascosto inizialmente */
-    transition: opacity 0.3s ease, visibility 0.3s ease; /* Transizione per apertura/chiusura */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 #mobile-menu-overlay.hidden {
@@ -323,75 +344,84 @@ body.dark-mode #authenticated-content {
 
 
 #mobile-menu-overlay h3 {
-    color: #FFD700; /* Giallo oro per i titoli delle sezioni nel menu */
+    color: #FFD700;
     margin-bottom: 0.5rem;
-    font-size: 1.1rem; /* Dimensione del titolo più piccola per il dropdown */
-    width: 100%; /* Occupa tutta la larghezza */
+    font-size: 1.1rem;
+    width: 100%;
 }
 
-#mobile-menu-overlay .menu-link { /* Stile generale per i link del menu */
+#mobile-menu-overlay .menu-link {
     color: white;
     text-decoration: none;
-    padding: 0.5rem 1rem; /* Padding più piccolo per i link del dropdown */
+    padding: 0.5rem 1rem;
     border-radius: 0.25rem;
-    font-weight: normal; /* Meno grassetto per i link */
+    font-weight: normal;
     transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
-    width: 100%; /* Occupa tutta la larghezza del dropdown */
-    text-align: left; /* Allinea il testo a sinistra */
-    white-space: normal; /* Permette al testo di andare a capo */
-    font-size: 0.95rem; /* Dimensione del font per i link */
+    width: 100%;
+    text-align: left;
+    white-space: normal;
+    font-size: 0.95rem;
 }
 
 #mobile-menu-overlay .menu-link:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Sfondo hover più leggero */
+    background-color: rgba(255, 255, 255, 0.1);
     color: #FFD700;
 }
 
-#mobile-menu-overlay .menu-separator { /* Stile per le righe di separazione */
+#mobile-menu-overlay .menu-separator {
     width: 100%;
-    height: 1px; /* Altezza della riga */
-    background-color: rgba(255, 255, 255, 0.2); /* Colore leggero */
-    margin: 0.5rem 0; /* Spazio sopra e sotto il separatore */
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.2);
+    margin: 0.5rem 0;
 }
 
 /* Stili per il link di logout nel menu */
 #mobile-logout-link {
-    color: #FFD700; /* Colore giallo per il testo del link */
-    font-weight: bold; /* Grassetto */
-    text-align: center; /* Centra il testo del link */
-    margin-top: 0.5rem; /* Spazio sopra il link di logout */
+    color: #FFD700;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 0.5rem;
 }
 
 #mobile-logout-link:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Stesso hover degli altri link */
+    background-color: rgba(255, 255, 255, 0.1);
     color: #FFD700;
+}
+
+/* Classe per rendere il contenuto invisibile ma mantenere lo spazio */
+.invisible-content {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 
 /* Responsive Adjustments */
-@media (min-width: 640px) { /* Applica padding standard per schermi più grandi di 'sm' */
+@media (min-width: 640px) {
     #main-navbar .container {
-        padding-left: 1rem; /* Default Tailwind container padding */
-        padding-right: 1rem; /* Default Tailwind container padding */
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 }
 
-@media (min-width: 768px) { /* Applica padding standard per schermi più grandi di 'md' */
+@media (min-width: 768px) {
     #main-navbar .container {
-        padding-left: 1.5rem; /* Default Tailwind container padding for md */
-        padding-right: 1.5rem; /* Default Tailwind container padding for md */
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    #navbar-spacer {
+        height: 64px; /* Adatta l'altezza dello spacer per schermi più grandi */
     }
 }
 
 /* Regole per schermi piccoli (mobile) */
 @media (max-width: 767px) { 
     .header-image {
-        height: 150px;
+        height: 150px; /* Altezza ridotta per mobile */
     }
-
     .content-header {
         padding: 15px;
-        margin-top: 20px;
+        margin-top: 10px; /* Margine superiore normale */
     }
 
     .logo {
@@ -420,42 +450,49 @@ body.dark-mode #authenticated-content {
     #main-navbar .container {
         flex-direction: row; 
         justify-content: space-between;
-        padding-left: 0.5rem; /* Padding orizzontale ridotto per mobile (8px) */
-        padding-right: 0.5rem; /* Padding orizzontale ridotto per mobile (8px) */
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
     }
 
     #navbar-left-section span {
-        font-size: 0.9rem; /* Riduci dimensione testo scuola su mobile per dare più spazio */
+        font-size: 0.9rem;
     }
 
     #navbar-center-section {
-        display: block; 
+        display: flex;
         flex-grow: 1; 
         text-align: center; 
+        height: 40px; /* Altezza fissa anche per mobile */
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
     }
 
     /* Stili per il menu dropdown su mobile */
     #mobile-menu-overlay {
-        width: 160px; /* Larghezza più stretta per mobile */
-        padding: 0.5rem; /* Padding ridotto */
+        width: 160px;
+        padding: 0.5rem;
     }
     #mobile-menu-overlay h3 {
-        font-size: 0.9rem; /* Titoli più piccoli */
+        font-size: 0.9rem;
     }
     #mobile-menu-overlay .menu-link {
-        padding: 0.3rem 0.6rem; /* Ulteriore riduzione del padding */
-        font-size: 0.8rem; /* Ulteriore riduzione del font */
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
     }
     #mobile-logout-link {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
     }
     #mobile-user-info {
-        font-size: 0.85rem; /* Testo utente più piccolo nel menu mobile */
+        font-size: 0.85rem;
     }
     #mobile-user-info img {
-        height: 24px; /* Immagine utente più piccola */
+        height: 24px;
         width: 24px;
+    }
+    #navbar-spacer {
+        height: 56px; /* Altezza dello spacer per mobile */
     }
 }
 
@@ -471,10 +508,13 @@ body.dark-mode #authenticated-content {
         font-size: 0.9em;
     }
     #navbar-left-section span {
-        font-size: 0.7rem; /* Riduci ulteriormente dimensione testo scuola su schermi molto piccoli */
+        font-size: 0.7rem;
+    }
+    #navbar-center-section {
+        height: 36px;
     }
     #mobile-menu-overlay {
-        width: 140px; /* Ancora più stretto */
+        width: 140px;
         padding: 0.4rem;
     }
     #mobile-menu-overlay h3 {
@@ -495,9 +535,7 @@ body.dark-mode #authenticated-content {
         height: 20px;
         width: 20px;
     }
+    #navbar-spacer {
+        height: 52px; /* Altezza dello spacer per schermi molto piccoli */
+    }
 }
-
-
-
-
-

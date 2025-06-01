@@ -26,7 +26,7 @@ let navbarUserInfo; // Info utente desktop (rimane per la parte centrale della n
 let hamburgerIcon;
 let mobileMenuOverlay;
 let mobileLogoutLink; // Bottone logout mobile
-let navbarSpacer;
+let navbarSpacer; // Mantenuto per riferimento, ma l'altezza è fissa in CSS
 
 // Funzione per inizializzare gli event listener della navbar
 function initializeNavbarListeners() {
@@ -102,12 +102,10 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
                 <img src="${userData.googlePicture}" alt="Profile" class="inline-block h-8 w-8 rounded-full mr-2 border border-gray-300">
                 <span>${userData.googleName} (${userData.profile})</span>
             `;
-            navbarUserInfo.classList.remove('hidden'); 
-            mobileLogoutLink.classList.remove('hidden'); // Mostra il bottone logout nel menu
+            navbarUserInfo.classList.remove('invisible-content'); // Rimuovi la classe per renderlo visibile
         } else {
-            navbarUserInfo.classList.add('hidden');
             navbarUserInfo.innerHTML = '';
-            mobileLogoutLink.classList.add('hidden'); // Nasconde il bottone logout nel menu
+            navbarUserInfo.classList.add('invisible-content'); // Aggiungi la classe per renderlo invisibile
         }
         
         welcomeMessageDiv.textContent = 'Benvenuto! Sei loggato.'; 
@@ -118,19 +116,19 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
         authenticatedContent.style.display = 'none';
         hamburgerIcon.classList.add('hidden'); // Nasconde l'icona hamburger
         
-        navbarUserInfo.classList.add('hidden');
-        navbarUserInfo.innerHTML = '';
+        navbarUserInfo.innerHTML = ''; // Pulisci il contenuto
+        navbarUserInfo.classList.add('invisible-content'); // Rendi invisibile
         mobileLogoutLink.classList.add('hidden'); // Nasconde il bottone logout nel menu
 
         welcomeMessageDiv.textContent = '';
     }
     spinner.style.display = 'none';
 
-    // Dopo aver aggiornato la visibilità degli elementi, ricalcola e applica l'altezza della navbar
-    if (mainNavbar && navbarSpacer) {
-        const navbarHeight = mainNavbar.offsetHeight;
-        navbarSpacer.style.height = `${navbarHeight}px`;
-    }
+    // Rimosso il ricalcolo dell'altezza dello spacer, ora è fisso in CSS
+    // if (mainNavbar && navbarSpacer) {
+    //     const navbarHeight = mainNavbar.offsetHeight;
+    //     navbarSpacer.style.height = `${navbarHeight}px`;
+    // }
 }
 
 // Funzione di callback per Google Identity Services
@@ -263,3 +261,5 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Espone la funzione per l'inizializzazione esterna (chiamata da index.html dopo il caricamento della navbar)
 window.initializeNavbarElements = initializeNavbarListeners;
+
+

@@ -7,6 +7,7 @@
     <link rel="icon" href="assets/Marist_Brothers_monogram.svg" type="image/svg+xml">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="css/style.css">
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="js/login.js" defer></script>
 </head>
 <body>
@@ -30,7 +31,7 @@
     </header>
 
     <main class="container mx-auto px-4 py-8">
-        <div class="google-button-wrapper">
+        <div class="google-button-wrapper flex justify-center mt-4 hidden"> 
             <div id="g_id_onload"
                  data-client_id="651622332732-hqg898c50786ii5rpa4iieo43gb6kmc8.apps.googleusercontent.com"
                  data-callback="handleCredentialResponse"
@@ -102,4 +103,3 @@
 
 </body>
 </html>
-

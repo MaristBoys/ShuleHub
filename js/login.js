@@ -5,6 +5,9 @@ const BACKEND_BASE_URL = 'https://google-api-backend-biu7.onrender.com';
 
 // Elementi UI (alcuni verranno cercati dopo il caricamento della navbar)
 const googleSignInButton = document.querySelector('.g_id_signin');
+// Riferimento al wrapper del pulsante Google
+const googleButtonWrapper = document.querySelector('.google-button-wrapper'); 
+
 const spinner = document.getElementById('spinner');
 const resultDiv = document.getElementById('result');
 const welcomeMessageDiv = document.getElementById('welcome-message');
@@ -17,17 +20,11 @@ const simulateLogoutButton = document.getElementById('simulate-logout-button');
 
 // Variabili per gli elementi della navbar che verranno inizializzati dopo il caricamento
 let mainNavbar;
-// navbarLogoutButton e desktopNavLinks non più necessari separatamente per desktop
-// let navbarLogoutButton; // Bottone logout desktop
-// let desktopNavLinks; // Contenitore link desktop
-
 let navbarUserInfo; // Info utente desktop (rimane per la parte centrale della navbar)
 
-// Elementi del menu mobile (ora universale)
+// Elementi del menu universale (dropdown)
 let hamburgerIcon;
 let mobileMenuOverlay;
-// closeMobileMenuButton rimosso
-// mobileUserInfo rimosso
 let mobileLogoutLink; // Bottone logout mobile
 let navbarSpacer;
 
@@ -40,8 +37,6 @@ function initializeNavbarListeners() {
     // Elementi del menu universale
     hamburgerIcon = document.getElementById('hamburger-icon');
     mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
-    // closeMobileMenuButton rimosso // closeMobileMenuButton = document.getElementById('close-mobile-menu');
-    // mobileUserInfo rimosso
     mobileLogoutLink = document.getElementById('mobile-logout-link'); // Questo è l'unico bottone di logout
 
     // Associa l'evento al bottone di logout (unico)
@@ -89,14 +84,15 @@ function initializeNavbarListeners() {
 // Funzione per aggiornare la UI in base allo stato di login
 function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) {
     // Assicurati che gli elementi della navbar e lo spacer siano disponibili
-    if (!mainNavbar || !navbarUserInfo || !navbarSpacer || !mobileLogoutLink || !hamburgerIcon) {
+    if (!mainNavbar || !navbarUserInfo || !navbarSpacer || !mobileLogoutLink || !hamburgerIcon || !googleButtonWrapper) {
         console.warn("Navbar elements or spacer not yet available. Retrying UI update...");
         setTimeout(() => updateUIForLoginState(isLoggedIn, userData, clearResult), 100);
         return;
     }
 
     if (isLoggedIn) {
-        googleSignInButton.style.display = 'none';
+        // Nascondi il wrapper del pulsante Google aggiungendo la classe hidden
+        googleButtonWrapper.classList.add('hidden'); 
         authenticatedContent.style.display = 'block';
         hamburgerIcon.classList.remove('hidden'); // Mostra l'icona hamburger
 
@@ -107,25 +103,23 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
                 <span>${userData.googleName} (${userData.profile})</span>
             `;
             navbarUserInfo.classList.remove('hidden'); 
-            // mobileUserInfo non più aggiornato
             mobileLogoutLink.classList.remove('hidden'); // Mostra il bottone logout nel menu
         } else {
             navbarUserInfo.classList.add('hidden');
             navbarUserInfo.innerHTML = '';
-            // mobileUserInfo non più aggiornato
             mobileLogoutLink.classList.add('hidden'); // Nasconde il bottone logout nel menu
         }
         
         welcomeMessageDiv.textContent = 'Benvenuto! Sei loggato.'; 
 
     } else {
-        googleSignInButton.style.display = 'inline-block';
+        // Mostra il wrapper del pulsante Google rimuovendo la classe hidden
+        googleButtonWrapper.classList.remove('hidden'); 
         authenticatedContent.style.display = 'none';
         hamburgerIcon.classList.add('hidden'); // Nasconde l'icona hamburger
         
         navbarUserInfo.classList.add('hidden');
         navbarUserInfo.innerHTML = '';
-        // mobileUserInfo non più aggiornato
         mobileLogoutLink.classList.add('hidden'); // Nasconde il bottone logout nel menu
 
         welcomeMessageDiv.textContent = '';
@@ -206,10 +200,30 @@ async function logout() {
         if (mobileMenuOverlay) {
             mobileMenuOverlay.classList.add('hidden');
         }
-        updateUIForLoginState(false);
+        updateUIForLoginState(false); // Questo rende il wrapper visibile
+
         if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
             google.accounts.id.disableAutoSelect();
             console.log('Google auto-select disabilitato.');
+
+            // *** NUOVA LOGICA: Forzare il re-rendering del pulsante Google ***
+            const googleButtonContainer = document.querySelector('.g_id_signin');
+            if (googleButtonContainer) {
+                // Pulisci qualsiasi contenuto esistente che Google potrebbe aver renderizzato (es. iframe)
+                googleButtonContainer.innerHTML = ''; 
+                google.accounts.id.renderButton(
+                    googleButtonContainer, // Il div dove il pulsante dovrebbe essere renderizzato
+                    {   // Configurazione del pulsante, deve corrispondere a quella in index.html
+                        type: "standard",
+                        size: "large",
+                        theme: "outline",
+                        text: "sign_in_with",
+                        shape: "rectangular",
+                        logo_alignment: "left"
+                    }
+                );
+                console.log('Google button re-render richiesto.');
+            }
         }
     }
 }
@@ -249,4 +263,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Espone la funzione per l'inizializzazione esterna (chiamata da index.html dopo il caricamento della navbar)
 window.initializeNavbarElements = initializeNavbarListeners;
-

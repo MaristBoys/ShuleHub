@@ -1,0 +1,27 @@
+name: Auto Versioning
+
+on:
+  push:
+    branches:
+      - main  # Si attiva ad ogni push su "main"
+
+jobs:
+  update-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Genera versione dinamica
+        run: echo "VERSION=$(date +%s)" >> $GITHUB_ENV
+
+      - name: Modifica i file HTML
+        run: sed -i 's/style.css?v=[0-9]*/style.css?v=${VERSION}/g' index.html && sed -i 's/app.js?v=[0-9]*/app.js?v=${VERSION}/g' index.html
+
+      - name: Commit e Push
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add index.html
+          git commit -m "Aggiornato versioning automatico"
+          git push

@@ -1,7 +1,7 @@
 {
   "name": "mwalimuhub",
   "version": "1.0.0",
-  "description": "Description of your project",
+  "description": "Frontend Node.js application for MwalimuHub",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

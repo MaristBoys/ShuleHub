@@ -1,0 +1,31 @@
+name: Deploy su GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # Cambia se usi un altro branch per il deploy
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'  # Usa una versione recente
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Converti i path per GitHub Pages
+        run: node convert-paths.js
+
+      - name: Deploy su GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages  # Cambia se usi un altro branch per il deploy
+          folder: .         # Pubblica la root del repository

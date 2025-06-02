@@ -29,9 +29,9 @@ let hamburgerIcon; // Aggiunto per il menu mobile
 
 // Elementi specifici del menu mobile (integrati da navbar.html)
 let mobileMenuOverlay;
-let uploadLinkMobile;
-let dynamicMenuLinksContainer;
-let dynamicLinksSeparator;
+let uploadLinkMobile; // Keep this if the link is always visible, but remove profile check
+// let dynamicMenuLinksContainer; // REMOVED
+// let dynamicLinksSeparator;     // REMOVED
 
 
 // Funzione per inizializzare gli event listener della navbar
@@ -45,8 +45,8 @@ function initializeNavbarListeners() {
     mobileMenuOverlay = document.getElementById('mobile-menu-overlay');
     mobileLogoutLink = document.getElementById('mobile-logout-link'); // Questo è l'unico bottone di logout
     uploadLinkMobile = document.getElementById('upload-link-mobile'); // Link upload mobile
-    dynamicMenuLinksContainer = document.getElementById('dynamic-menu-links'); // Contenitore link dinamici
-    dynamicLinksSeparator = document.getElementById('dynamic-links-separator'); // Separatore link dinamici
+    // dynamicMenuLinksContainer = document.getElementById('dynamic-menu-links'); // REMOVED
+    // dynamicLinksSeparator = document.getElementById('dynamic-links-separator'); // REMOVED
 
 
     // Associa l'evento al bottone di logout (unico)
@@ -107,7 +107,8 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
 
     // Assicurati che gli elementi della navbar siano disponibili prima di manipolarli
     // Aggiunto un setTimeout per riprovare se gli elementi non sono ancora nel DOM
-    if (!mainNavbar || !navbarUserInfo || !mobileLogoutLink || !hamburgerIcon || !uploadLinkMobile || !dynamicMenuLinksContainer || !dynamicLinksSeparator) {
+    // Removed checks for dynamicMenuLinksContainer and dynamicLinksSeparator
+    if (!mainNavbar || !navbarUserInfo || !mobileLogoutLink || !hamburgerIcon || !uploadLinkMobile) {
         console.warn("Elementi della Navbar o dello Spinner non ancora disponibili. Riprovo l'aggiornamento UI...");
         setTimeout(() => updateUIForLoginState(isLoggedIn, userData, clearResult), 100);
         return;
@@ -163,28 +164,22 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
         }
     }
 
-    // Mostra il link Upload solo se l'utente è un 'teacher'
+    // The Upload link will always be visible in the mobile menu, no profile check
     if (uploadLinkMobile) {
-        if (isLoggedIn && userData && userData.profile === 'Teacher') { // Assumendo che il ruolo sia 'Teacher'
-            uploadLinkMobile.classList.remove('hidden');
-        } else {
-            uploadLinkMobile.classList.add('hidden');
-        }
+        uploadLinkMobile.classList.remove('hidden'); 
     }
 
-    // Genera i link dinamici (es. per le classi o materie)
-    if (dynamicMenuLinksContainer) {
-        generateDynamicLinks(userData); // Chiama la funzione per popolare i link dinamici
-    }
-
-    // Mostra il separatore se ci sono link dinamici
-    if (dynamicLinksSeparator) {
-        if (dynamicMenuLinksContainer && dynamicMenuLinksContainer.children.length > 0) {
-            dynamicLinksSeparator.classList.remove('hidden');
-        } else {
-            dynamicLinksSeparator.classList.add('hidden');
-        }
-    }
+    // Removed dynamic link generation and separator logic
+    // if (dynamicMenuLinksContainer) {
+    //     generateDynamicLinks(userData);
+    // }
+    // if (dynamicLinksSeparator) {
+    //     if (dynamicMenuLinksContainer && dynamicMenuLinksContainer.children.length > 0) {
+    //         dynamicLinksSeparator.classList.remove('hidden');
+    //     } else {
+    //         dynamicLinksSeparator.classList.add('hidden');
+    //     }
+    // }
     
     // Messaggio di benvenuto (presente solo in index.html)
     if (welcomeMessageDiv) {
@@ -198,24 +193,21 @@ function updateUIForLoginState(isLoggedIn, userData = null, clearResult = true) 
     if (spinner) spinner.style.display = 'none';
 }
 
-// Funzione per generare link dinamici (esempio: per classi o materie)
-function generateDynamicLinks(userData) {
-    if (dynamicMenuLinksContainer) {
-        dynamicMenuLinksContainer.innerHTML = ''; // Pulisci i link esistenti
-        if (userData && userData.classes && userData.classes.length > 0) {
-            // Esempio: aggiungi link per ogni classe dell'utente
-            userData.classes.forEach(cls => {
-                const link = document.createElement('a');
-                // Usa BASE_PATH per il link dinamico
-                link.href = `${BASE_PATH}/pages/class-detail.html?class=${encodeURIComponent(cls)}`; 
-                link.className = 'menu-link w-full text-left py-2 px-4 rounded';
-                link.textContent = `Classe: ${cls}`;
-                dynamicMenuLinksContainer.appendChild(link);
-            });
-        }
-        // Puoi aggiungere logica simile per materie, stanze, ecc.
-    }
-}
+// Function to generate dynamic links (example: for classes or subjects) - REMOVED
+// function generateDynamicLinks(userData) {
+//     if (dynamicMenuLinksContainer) {
+//         dynamicMenuLinksContainer.innerHTML = '';
+//         if (userData && userData.classes && userData.classes.length > 0) {
+//             userData.classes.forEach(cls => {
+//                 const link = document.createElement('a');
+//                 link.href = `${BASE_PATH}/pages/class-detail.html?class=${encodeURIComponent(cls)}`;
+//                 link.className = 'menu-link w-full text-left py-2 px-4 rounded';
+//                 link.textContent = `Classe: ${cls}`;
+//                 dynamicMenuLinksContainer.appendChild(link);
+//             });
+//         }
+//     }
+// }
 
 
 // Funzione di callback per Google Identity Services
@@ -317,7 +309,7 @@ function simulateLogin() {
     console.log("Simulating login...");
     const mockUserData = {
         name: "Simulato Utente",
-        profile: "Teacher",
+        profile: "Teachers", // Keeping profile for navbarUserInfo display, but it won't affect menu links now
         googleName: "Simulato Google Name",
         googlePicture: "https://placehold.co/100x100/aabbcc/ffffff?text=SU",
         email: "simulato.utente@example.com"

@@ -14,7 +14,7 @@ const processedFiles = new Set();
 const processFiles = (dirPath) => {
     fs.readdirSync(dirPath).forEach((file) => {
         const filePath = path.join(dirPath, file);
-        
+
         if (fs.statSync(filePath).isDirectory()) {
             processFiles(filePath); // Se è una cartella, continua la scansione
         } else if (!processedFiles.has(filePath)) {
@@ -26,15 +26,15 @@ const processFiles = (dirPath) => {
                 content = content.replace(/(src|href)=["']\/(?!${repoName})/g, `$1="/${repoName}/`);
             }
 
-            // 🔹 **Gestione file CSS**
+            // 🔹 **Gestione file CSS** (evita doppia modifica)
             else if (file.endsWith(".css")) {
                 content = content.replace(/url\(["']\/(?!${repoName})/g, `url("/${repoName}/`);
             }
 
-            // 🔹 **Gestione file JS** (aggiunta `.href = '/...'`)
+            // 🔹 **Gestione file JS** (inclusi backticks!)
             else if (file.endsWith(".js")) {
-                content = content.replace(/fetch\(["']\/(?!${repoName}|${BACKEND_BASE_URL})/g, `fetch("/${repoName}/`);
-                content = content.replace(/\.href = ["']\/(?!${repoName})/g, `.href = "/${repoName}/`);
+                content = content.replace(/fetch\([`"']\/(?!${repoName}|${BACKEND_BASE_URL})/g, `fetch("/${repoName}/`);
+                content = content.replace(/\.href = [`"']\/(?!${repoName})/g, `.href = "/${repoName}/`);
             }
 
             fs.writeFileSync(filePath, content, "utf8");
@@ -47,6 +47,7 @@ const processFiles = (dirPath) => {
 processFiles(rootFolder);
 
 console.log("🚀 Tutte le modifiche sono state applicate con successo!");
+
 
 /*
 const fs = require("fs");

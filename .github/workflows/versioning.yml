@@ -16,12 +16,16 @@ jobs:
         run: echo "VERSION=$(date +%s)" >> $GITHUB_ENV
 
       - name: Modifica i file HTML
-        run: sed -i 's/style.css?v=[0-9]*/style.css?v=${VERSION}/g' index.html && sed -i 's/app.js?v=[0-9]*/app.js?v=${VERSION}/g' index.html
+        run: |
+          find . -name "*.html" -exec sed -i "s/style.css?v=[0-9]*/style.css?v=$VERSION/g" {} +
+          find . -name "*.html" -exec sed -i "s/login.js?v=[0-9]*/login.js?v=$VERSION/g" {} +
+          find . -name "*.html" -exec sed -i "s/upload.js?v=[0-9]*/upload.js?v=$VERSION/g" {} +
 
       - name: Commit e Push
         run: |
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          git add index.html
+          git add .
           git commit -m "Aggiornato versioning automatico"
           git push
+

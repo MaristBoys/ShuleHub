@@ -18,7 +18,11 @@ jobs:
       - name: Modifica i file HTML
         run: |
           find . -name "*.html" -exec sed -i "s/style.css?v=[0-9]*/style.css?v=$VERSION/g" {} +
+          find . -name "*.html" -exec sed -i "s/config.js?v=[0-9]*/config.js?v=$VERSION/g" {} +
+          find . -name "*.html" -exec sed -i "s/utils.js?v=[0-9]*/utils.js?v=$VERSION/g" {} +
+          find . -name "*.html" -exec sed -i "s/prefetch.js?v=[0-9]*/prefetch.js?v=$VERSION/g" {} +
           find . -name "*.html" -exec sed -i "s/login.js?v=[0-9]*/login.js?v=$VERSION/g" {} +
+          find . -name "*.html" -exec sed -i "s/index.js?v=[0-9]*/index.js?v=$VERSION/g" {} +
           find . -name "*.html" -exec sed -i "s/upload.js?v=[0-9]*/upload.js?v=$VERSION/g" {} +
 
       - name: Commit e Push

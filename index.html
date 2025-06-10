@@ -20,6 +20,8 @@
 
     <!-- Il tuo file CSS personalizzato -->
     <link rel="stylesheet" href="/css/style.css?v=1749506632">
+       <!-- Tailwind: definisci l'animazione se non usi un plugin -->
+
     <!-- Non serve qui, la libreria GSI verrà inizializzata con window.onload -->
     <!-- <script src="https://accounts.google.com/gsi/client" async defer></script> -->
     <!-- Questo script è obsoleto, verrà rimosso e gestito dal nuovo setup modulare -->
@@ -31,7 +33,17 @@
     <div id="navbar-placeholder" class="w-full h-[52px] animate-pulse bg-gray-800"></div>
 
     <!-- Header Image -->
-    <div class="w-full h-[250px] bg-cover bg-center mb-1" style="background-image: url('/assets/header.jpg');"></div>
+
+    <!--<div class="w-full h-[20vh] sm:h-[40vh] bg-cover bg-center mb-1"
+        style="background-image: url('/assets/header_last.jpg');"></div>-->
+
+    <div class="relative w-full h-[30vh] bg-cover bg-center opacity-0 animate-fade-in"
+        style="background-image: url('/assets/header_last.jpg');">
+        <div class="absolute inset-0 bg-gradient-to-b from-black/40 to-transparent"></div>
+    </div>
+
+ 
+
 
     <!-- Header Content -->
     <header

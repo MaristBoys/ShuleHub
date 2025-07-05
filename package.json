@@ -1,7 +1,7 @@
 {
-  "name": "mwalimuhub",
+  "name": "shulehub",
   "version": "1.0.0",
-  "description": "Frontend Node.js application for MwalimuHub",
+  "description": "Frontend Node.js application for ShuleHub",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"

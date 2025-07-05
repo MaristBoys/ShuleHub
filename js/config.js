@@ -1,7 +1,7 @@
 // config.js
 
 // Definizione della base URL del backend, disponibile globalmente
-window.BACKEND_BASE_URL = 'https://google-api-backend-biu7.onrender.com';
+window.BACKEND_BASE_URL = 'https://shulehub-backend-gvob.onrender.com';
 
 // Inizializzazione della cache globale per le Promise attive di prefetching
 // Viene creata solo se non esiste già, prevenendo sovrascritture accidentali.

@@ -1,31 +1,40 @@
-name: Deploy su GitHub Pages
+name: Deploy su GitHub Pages (Branch Prod)
 
 on:
   push:
     branches:
-      - main  # Cambia se usi un altro branch per il deploy
+      - main  # Il workflow si attiva quando fai push sul branch 'main'
 
 jobs:
-  build:
+  build_and_deploy: # Ho rinominato il job per chiarezza
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        # Questa azione clona il branch 'main' nel runner di GitHub Actions
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Usa una versione recente
+          node-version: '18'
 
       - name: Install dependencies
-        run: npm install
+        run: npm install # Installa eventuali dipendenze del tuo progetto, se presenti
 
       - name: Converti i path per GitHub Pages
         run: node convert-paths.js
+        # Questo script deve modificare i file direttamente nella directory di lavoro corrente
+        # (che è la copia clonata del branch 'main').
+        # Assicurati che 'convert-paths.js' scriva le modifiche nello stesso posto
+        # dove si trovano i file originali (e.g., sovrascrivendoli o modificandoli in-place).
 
-      - name: Deploy su GitHub Pages
+      - name: Deploy su GitHub Pages (Branch Prod)
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          branch: gh-pages  # Cambia se usi un altro branch per il deploy
-          folder: .         # Pubblica la root del repository
+          branch: prod    # L'azione creerà o aggiornerà questo branch 'prod'
+          folder: .       # Pubblica tutti i file dalla root della directory di lavoro
+                          # del runner, che ora contiene i file con i path convertiti.
+          clean: true     # (Opzionale ma raccomandato) Rimuove tutti i file esistenti
+                          # sul branch 'prod' prima di aggiungerne di nuovi,
+                          # evitando file orfani da deploy precedenti.

@@ -2,7 +2,7 @@ const fs = require("fs");
 const path = require("path");
 
 // Nome del repository GitHub Pages
-const repoName = "MwalimuHub";  // <-- Modifica con il nome corretto!
+const repoName = "ShuleHub";  
 
 // 🔹 **Lista dei file da modificare**
 const fileList = [

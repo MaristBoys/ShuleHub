@@ -22,7 +22,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/2.0.7/css/dataTables.dataTables.min.css">
     <script type="text/javascript" src="https://cdn.datatables.net/2.0.7/js/dataTables.min.js"></script>
 
-    <link rel="stylesheet" href="/ShuleHub/css/style.css?v=1751730204">
+    <link rel="stylesheet" href="/ShuleHub/css/style.css?v=1751731552">
     <link rel="stylesheet" type="text/css"
         href="https://cdn.datatables.net/responsive/3.0.0/css/responsive.dataTables.min.css">
     <script type="text/javascript"
@@ -34,46 +34,54 @@
 
     <div id="navbar-placeholder" class="w-full h-[52px] animate-pulse bg-gray-800"></div>
 
-    <main class="container mx-auto px-4 pt-4 mt-10">
+    <main class="container mx-auto px-2 pt-4 mt-4 sm:mt-10">
         <h2 class="text-yellow-400 text-2xl font-bold text-center mt-3 mb-2">Archived Documents</h2>
 
         <div
             class="mb-4 flex flex-wrap items-center justify-center gap-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md">
 
-            <span class="ml-3 text-lg font-bold text-gray-700 dark:text-gray-300">Filter by</span>
-            <select id="filter-author" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-              dark:bg-gray-600 dark:text-white dark:border-gray-500">
-                <option value="">Author</option>
-            </select>
-            <select id="filter-year" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-              dark:bg-gray-600 dark:text-white dark:border-gray-500">
-                <option value="">Year</option>
-            </select>
-            <select id="filter-subject" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-              dark:bg-gray-600 dark:text-white dark:border-gray-500">
-                <option value="">Subject</option>
-            </select>
-            <select id="filter-form" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-              dark:bg-gray-600 dark:text-white dark:border-gray-500">
-                <option value="">Form</option>
-            </select>
-            <select id="filter-room" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-              dark:bg-gray-600 dark:text-white dark:border-gray-500">
-                <option value="">Room</option>
-            </select>
-            <select id="filter-type" class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
-              dark:bg-gray-600 dark:text-white dark:border-gray-500">
-                <option value="">Type</option>
-            </select>
-
-            <button id="reset-filter-button"
-                class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Reset Filter
-            </button>
-            <button id="refresh-data-button"
-                class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                Refresh Data
-            </button>
+            <div class="w-full text-center sm:text-center mb-1"> 
+                <span class="text-lg font-bold text-gray-700 dark:text-gray-300">Filter by</span>
+            </div>
+            
+            
+            <div class="w-full flex flex-wrap items-center justify-center gap-2 mb-4">
+                <select id="filter-author" class="shadow appearance-none border rounded py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                  dark:bg-gray-600 dark:text-white dark:border-gray-500">
+                    <option value="">Author</option>
+                </select>
+                <select id="filter-year" class="shadow appearance-none border rounded py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                  dark:bg-gray-600 dark:text-white dark:border-gray-500">
+                    <option value="">Year</option>
+                </select>
+                <select id="filter-subject" class="shadow appearance-none border rounded py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                  dark:bg-gray-600 dark:text-white dark:border-gray-500">
+                    <option value="">Subject</option>
+                </select>
+                <select id="filter-form" class="shadow appearance-none border rounded py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                  dark:bg-gray-600 dark:text-white dark:border-gray-500">
+                    <option value="">Form</option>
+                </select>
+                <select id="filter-room" class="shadow appearance-none border rounded py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                  dark:bg-gray-600 dark:text-white dark:border-gray-500">
+                    <option value="">Room</option>
+                </select>
+                <select id="filter-type" class="shadow appearance-none border rounded py-2 px-3 pr-8 text-gray-700 leading-tight focus:outline-none focus:shadow-outline
+                  dark:bg-gray-600 dark:text-white dark:border-gray-500">
+                    <option value="">Type</option>
+                </select>
+            </div>
+            
+            <div class="w-full flex justify-center gap-2 mt-2">
+                <button id="reset-filter-button"
+                    class="bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Reset Filter
+                </button>
+                <button id="refresh-data-button"
+                    class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    Refresh Data
+                </button>
+            </div>
         </div>
 
         <div id="loadingSpinner" class="hidden flex justify-center items-center py-4">
@@ -104,7 +112,7 @@
     </main>
  
     <div id="storage-info-section"
-        class="container text-center mx-auto p-4 bg-gray-100 dark:bg-gray-800 rounded-lg shadow-md mt-4 hidden flex items-center gap-4">
+        class="container text-center mx-auto p-4 bg-gray-300 dark:bg-gray-800 rounded-lg shadow-md mt-4 hidden flex items-center gap-4">
         <h3 class="text-lg font-semibold text-gray-800 dark:text-gray-100">Storage Information:</h3>
         <span class="text-gray-700 dark:text-gray-300">Total: <span id="total-storage"></span></span>
         <span class="text-gray-700 dark:text-gray-300">Used: <span id="used-storage"></span></span>
@@ -113,12 +121,12 @@
         <div id="storage-error-message" class="text-red-500 hidden"></div>
     </div>
 
-    <script src="/ShuleHub/js/config.js?v=1751730204"></script>
+    <script src="/ShuleHub/js/config.js?v=1751731552"></script>
 
-    <script type="module" src="/ShuleHub/js/utils.js?v=1751730204"></script>
-    <script type="module" src="/ShuleHub/js/prefetch.js?v=1751730204"></script>
-    <script type="module" src="/ShuleHub/js/login.js?v=1751730204"></script>
-    <script type="module" src="/ShuleHub/js/archive.js?v=1751730204"></script>
+    <script type="module" src="/ShuleHub/js/utils.js?v=1751731552"></script>
+    <script type="module" src="/ShuleHub/js/prefetch.js?v=1751731552"></script>
+    <script type="module" src="/ShuleHub/js/login.js?v=1751731552"></script>
+    <script type="module" src="/ShuleHub/js/archive.js?v=1751731552"></script>
 </body>
 
 </html>

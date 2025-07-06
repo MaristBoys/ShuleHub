@@ -13,6 +13,7 @@ const filterTypeSelect = document.getElementById('filter-type'); // NEW
 const resetFilterButton = document.getElementById('reset-filter-button');
 const refreshDataButton = document.getElementById('refresh-data-button');
 const loadingSpinner = document.getElementById('loadingSpinner'); // NEW: Reference to the spinner element
+const tableContainer = document.getElementById('table-container');
 
 // NUOVI RIFERIMENTI PER LO STORAGE
 const storageInfoSection = document.getElementById('storage-info-section');
@@ -199,6 +200,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 function showSpinner() {
     if (loadingSpinner) {
         loadingSpinner.classList.remove('hidden');
+        // Aggiungi la classe per disabilitare gli eventi del puntatore sulla tabella
+    if (tableContainer) {
+        tableContainer.classList.add('hidden');
+    }
     }
 }
 
@@ -208,6 +213,10 @@ function showSpinner() {
 function hideSpinner() {
     if (loadingSpinner) {
         loadingSpinner.classList.add('hidden');
+    }
+    // Rimuovi la classe per riabilitare gli eventi del puntatore sulla tabella
+    if (tableContainer) {
+        tableContainer.classList.remove('hidden');
     }
 }
 
@@ -253,8 +262,6 @@ async function fetchAndDisplayStorageInfo() {
         storageErrorMessageDiv.classList.remove('hidden');
     }
 }
-
-
 
 /**
  * Popola dinamicamente le opzioni dei filtri select con i valori unici presenti nei dati.
@@ -382,8 +389,6 @@ async function loadArchivedFiles() {
     }
 }
 
-
-
 // Modifica questa funzione per usare la rotta del tuo backend
 window.downloadFile = (fileId) => {
     // Apri una nuova finestra/tab che punta alla tua rotta di download del backend
@@ -424,8 +429,6 @@ async function deleteFile(fileId) {
         hideSpinner(); // Ensure spinner is hidden after delete attempt
     }
 }
-
-
 
 
 // Make deleteFile globally available if you use onclick in HTML

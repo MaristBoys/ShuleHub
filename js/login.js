@@ -61,6 +61,18 @@ export async function handleCredentialResponse(response) {
 
     const idToken = response.credential;
     console.log("Received idToken from Google:", idToken.substring(0, 20));
+
+    // Per decodificare il payload lato frontend:
+    try {
+        const parts = idToken.split('.');
+        const decodedPayload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/'))); // atob è per Base64, le replace sono per Base64Url-safe
+
+        console.log("Payload dell'ID Token di Google decodificato lato frontend:", decodedPayload);
+    } catch (error) {
+        console.error("Errore durante la decodifica dell'ID Token lato frontend:", error);
+    }
+
+
     // Assicurati che il div result sia visibile durante il processo
     displayResult('<p class="text-gray-600">Received ID Token from Google. Logging in...</p>', 'info');
 
@@ -110,7 +122,8 @@ export async function handleCredentialResponse(response) {
                 dateLocal: dateLocal,
                 timeLocal: timeLocal,
                 deviceInfo: deviceInfo, // Aggiungi le informazioni sul dispositivo
-            })
+            }),
+            credentials: 'include' // Include i cookie per il token JWT
         });
 
         const data = await res.json();

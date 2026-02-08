@@ -6,14 +6,14 @@
 // e la configurazione dell'URL.
 // Questo file gestirà tutte le comunicazioni con Render.
 
-const BACKEND_BASE_URL = 'https://shulehub-backend-gvob.onrender.com';
+const BACKEND_BASE_URL = 'https://shulehub-j-backend.onrender.com';
 
 export const api = {
     async wakeUp() {
         try {
             // Usiamo l'endpoint base /api/auth. 
             // Nota: Il backend deve avere un metodo GET su /api/auth per non dare errore 405.
-            const response = await fetch(`${BACKEND_BASE_URL}/api/auth`, { method: 'GET' });
+            const response = await fetch(`${BACKEND_BASE_URL}/api/auth/test`, { method: 'GET' });
             return true; 
         } catch (error) {
             return false;

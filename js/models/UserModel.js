@@ -4,14 +4,19 @@
 import { storage } from '../core/storage.js';
 
 export const UserModel = {
-    // Salva i dati utente e permessi (ma non il token, che è nel Cookie)
-    initSession(userData) {
+    /**
+     * Inizializza la sessione utente dopo il login.
+     * Mappiamo i campi che arrivano dal backend Java (googleName, profile, etc.)
+     */
+    saveUser(userData) {
         const sessionInfo = {
             username: userData.username,
-            googleName: userData.googleName,
-            profile: userData.profile,
+            // Mapping per la navbar: usiamo googleName come nome principale
+            name: userData.googleName || userData.username, 
+            profile: userData.profile, // Es: "ADMIN", "TEACHER"
             permissions: userData.permissions || []
         };
+        
         storage.setSession('currentUser', sessionInfo);
         storage.setSession('isLoggedIn', true);
     },
@@ -20,13 +25,12 @@ export const UserModel = {
         return storage.getSession('currentUser');
     },
 
-    hasPermission(permission) {
-        const user = this.getCurrentUser();
-        return user ? user.permissions.includes(permission) : false;
+    isLoggedIn() {
+        return storage.getSession('isLoggedIn') === true;
     },
 
     logout() {
         storage.clearAll();
-        window.location.href = '/index.html';
+        window.location.href = '/ShuleHub/index.html';
     }
 };

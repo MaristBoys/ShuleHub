@@ -1,51 +1,25 @@
 <!DOCTYPE html>
-<html lang="it" class="dark">
-<head>
+<html lang="it" class="h-full"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Marist Boys - ShuleHub</title>
-    <link rel="icon" href="/assets/Marist_Brothers_monogram.svg" type="image/svg+xml">
-    
-    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
-    <script>
-        tailwind.config = { darkMode: 'class', theme: { extend: {} } }
-    </script>
-    <link rel="stylesheet" href="/css/style.css">
-    
+    <title>ShuleHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
+<body class="bg-[url('./assets/Mwanza_School.webp')] bg-cover bg-fixed bg-center bg-no-repeat min-h-screen">
 
-<body class="bg-[url('/assets/Mwanza_School.webp')] bg-cover bg-center bg-fixed bg-no-repeat text-gray-800 dark:text-gray-100 min-h-screen flex flex-col transition-colors duration-300">
-    
     <div id="navbar-placeholder"></div>
 
-    <main id="app-container" class="flex-grow flex items-center justify-center py-10 px-4">
-        
-        <section id="google-login-section" class="w-full max-w-[450px] bg-white/90 dark:bg-[#2a2a2a]/90 backdrop-blur-md rounded-[30px] shadow-2xl p-8 text-center border border-white/20">
-            <img src="/assets/Marist_Brothers_monogram.svg" alt="Logo" class="w-20 h-20 mx-auto mb-4 rounded-full shadow-lg">
-            <h1 class="text-3xl font-bold dark:text-yellow-400 mb-2">ShuleHub</h1>
-            <p class="text-gray-600 dark:text-yellow-200 mb-8">Marist Secondary School Digital Platform</p>
+    <main class="p-8">
+        <header class="text-center mb-12 py-10 bg-white/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20">
+            <h1 class="text-4xl font-bold text-blue-900 uppercase tracking-tight"></h1>
+            <p class="text-gray-600 font-medium"></p>
+        </header>
 
-            <div id="waiting-for-backend" class="flex flex-col items-center">
-                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-yellow-500 mb-4"></div>
-                <p id="server-status-message" class="text-sm italic">Svegliando il server su Render...</p>
-                <p id="countdown-timer" class="font-mono text-lg font-bold mt-2 text-yellow-500"></p>
+        <div id="dashboard-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             </div>
-
-            <div id="google-auth-button-wrapper" class="hidden flex justify-center scale-110"></div>
-        </section>
-
-        <section id="dashboard-section" class="hidden w-full max-w-7xl mx-auto">
-            <header class="mb-10">
-                <h2 class="text-4xl font-black text-white drop-shadow-md">Karibu, <span id="user-display-name" class="text-yellow-400"></span></h2>
-                <p class="text-white/80 font-medium">Seleziona un'area di gestione</p>
-            </header>
-            
-            <div id="dashboard-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
-        </section>
-
     </main>
 
-    <script type="module" src="/js/app.js"></script>
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>

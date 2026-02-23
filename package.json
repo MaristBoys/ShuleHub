@@ -1,16 +1,14 @@
 {
   "name": "shulehub",
   "version": "1.0.0",
-  "description": "Frontend Node.js application for ShuleHub",
-  "main": "index.js",
+  "description": "Frontend per ShuleHub - Vanilla JS con Vite",
+  "type": "module",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
-  },
-  "dependencies": {
-    "express": "^4.18.2"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "nodemon": "^3.0.0"
+    "vite": "^5.0.0"
   }
 }

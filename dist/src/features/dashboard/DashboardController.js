@@ -4,6 +4,10 @@ import { DashboardView } from './DashboardView.js';
 
 export class DashboardController {
     
+    /**
+     * Configurazione statica delle funzionalità disponibili nella dashboard.
+     * Ogni feature è legata a un permesso specifico.
+     */
     static getFeaturesConfig() {
         return [
             { id: 'config', title: 'School Config', icon: 'config.png', perm: 'ADMIN_CONFIG' },
@@ -15,20 +19,35 @@ export class DashboardController {
         ];
     }
 
-    static init() {
+    /**
+     * Inizializza la logica della dashboard.
+     * Gestisce il controllo accessi e coordina il rendering della view.
+     */
+    // src/features/dashboard/DashboardController.js
+    static async init() {
         const user = UserModel.getCurrentUser();
         if (!user) {
             window.location.hash = '#login';
             return;
         }
 
-        const features = this.getFeaturesConfig().filter(f => {
-            if (user.profileName === 'ADMIN') return true;
-            // La card apparirà se ha il permesso specifico o se ha il "tocco di classe" dinamico del backend
-            return user.permissions.has(f.perm) || 
-                   (f.id === 'classes' && user.permissions.has('ACCESS_TEACHER_AREA'));
+        // Trasformiamo in maiuscolo per sicurezza
+        const role = user.profileName?.toUpperCase();
+        
+        // Creiamo il Set dei permessi solo se esistono, altrimenti Set vuoto
+        const userPermissions = new Set(user.permissions || []);
+
+        const filteredFeatures = this.getFeaturesConfig().filter(f => {
+            // 1. Se è ADMIN vede tutto
+            if (role === 'ADMIN') return true;
+
+            // 2. Altrimenti controllo permessi
+            return userPermissions.has(f.perm) || 
+                (f.id === 'classes' && userPermissions.has('ACCESS_TEACHER_AREA'));
         });
 
-        DashboardView.render(user, features);
+        console.log("Features for Admin:", filteredFeatures); // Debug: guarda la console!
+
+        await DashboardView.render(user, filteredFeatures);
     }
 }

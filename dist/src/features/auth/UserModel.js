@@ -18,7 +18,8 @@ export const UserModel = {
             email: userData.email,           
             profileId: userData.profileId,   
             profileName: userData.profileName,
-            pictureUrl: userData.pictureUrl, 
+            pictureUrl: userData.pictureUrl,
+            googleName: userData.googleName, 
             permissions: userData.permissions || [],
             teacherContext: userData.teacherContext || null
         };

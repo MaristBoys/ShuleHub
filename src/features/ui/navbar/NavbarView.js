@@ -24,62 +24,71 @@ export const NavbarView = {
     },
 
     renderAuthMenu(user) {
-    const container = document.getElementById('auth-container');
-    if (!container) return;
+        const container = document.getElementById('auth-container');
+        if (!container) return;
 
-    // 1. Icona di default (quella che l'utente vede subito)
-    const defaultIcon = "./assets/icons/navbar_icona_1_32px.png";
+        const defaultIcon = "./assets/icons/navbar_icona_1_32px.png";
+        
+        container.innerHTML = `
+            <div class="flex items-center space-x-6">
+                <div class="flex flex-col text-right hidden md:flex text-blue-900">
+                    <span class="font-bold leading-tight">${user.username}</span>
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">${user.profileName}</span>
+                </div>
 
-    container.innerHTML = `
-        <div class="flex items-center space-x-6">
-            <div class="flex flex-col text-right hidden md:flex text-blue-900">
-                <span class="font-bold leading-tight">${user.username}</span>
-                <span class="text-[10px] uppercase tracking-wider text-gray-400 font-bold">${user.profileName}</span>
-            </div>
+                <a href="#profile" title="My Profile" class="hover:scale-110 transition-transform">
+                    <div class="relative w-8 h-8">
+                        <img src="${defaultIcon}" 
+                            class="w-8 h-8 rounded-full border-2 border-blue-900 object-cover absolute top-0 left-0">
+                        
+                        <img id="navbar-profile-img" 
+                            src="" 
+                            alt="Profilo" 
+                            class="w-8 h-8 rounded-full border-2 border-blue-900 object-cover absolute top-0 left-0 opacity-0 transition-opacity duration-500 ease-in-out">
+                    </div>
+                </a>
+                
+		<a href="#dashboard" title="Home" class="hover:scale-110 transition-transform">
+                	<img src="./assets/icons/navbar_icona_2_32px.png" alt="Home" class="w-8 h-8 object-contain">
+            	</a>
 
-            <a href="#profile" title="My Profile" class="hover:scale-110 transition-transform relative">
-                <img id="navbar-profile-img" 
-                     src="${defaultIcon}" 
-                     alt="Profilo" 
-                     class="w-8 h-8 rounded-full border-2 border-blue-900 object-cover shadow-sm transition-opacity duration-300">
-            </a>
+            	<button id="logout-btn" title="Logout" class="hover:scale-110 transition-transform">
+                	<img src="./assets/icons/navbar_icona_3_32px.png" alt="Logout" class="w-8 h-8 object-contain">
+            	</button>
 
-            <a href="#dashboard" title="Home" class="hover:scale-110 transition-transform">
-                <img src="./assets/icons/navbar_icona_2_32px.png" alt="Home" class="w-8 h-8 object-contain">
-            </a>
+                </div>
+        `;
 
-            <button id="logout-btn" title="Logout" class="hover:scale-110 transition-transform">
-                <img src="./assets/icons/navbar_icona_3_32px.png" alt="Logout" class="w-8 h-8 object-contain">
-            </button>
-        </div>
-    `;
-
-    // 2. Gestione asincrona dell'immagine di Google
-    if (user.pictureUrl) {
-        const imgLoader = new Image(); // Crea un oggetto immagine in memoria
-        imgLoader.src = user.pictureUrl;
-
-        imgLoader.onload = () => {
-            // L'immagine è stata scaricata con successo!
-            const profileImgElement = document.getElementById('navbar-profile-img');
-            if (profileImgElement) {
-                profileImgElement.style.opacity = '0'; // Effetto dissolvenza
-                setTimeout(() => {
-                    profileImgElement.src = user.pictureUrl;
-                    profileImgElement.style.opacity = '1';
-                }, 300);
-            }
-        };
-
-        imgLoader.onerror = () => {
-            console.warn("Impossibile caricare l'immagine di Google, rimango con quella di default.");
-        };
-    }
-
-        // Listener Logout
-        document.getElementById('logout-btn').addEventListener('click', () => {
+        this.loadProfileImage(user.pictureUrl);
+        
+        // Listener Logout (come prima)
+        document.getElementById('logout-btn').onclick = () => {
             UserModel.logout();
             window.dispatchEvent(new CustomEvent('app:logout'));
-        });
+        };
+    },
+
+    loadProfileImage(url) {
+        if (!url) return;
+
+        const imgElement = document.getElementById('navbar-profile-img');
+        if (!imgElement) return;
+
+        // Creiamo un oggetto Image per pre-caricare il file
+        const tempImg = new Image();
+        tempImg.src = url;
+
+        tempImg.onload = () => {
+            // Solo quando l'immagine è scaricata dalla cache o da Google:
+            imgElement.src = url;
+            imgElement.classList.remove('opacity-0');
+            imgElement.classList.add('opacity-100');
+        };
+
+        tempImg.onerror = () => {
+            console.warn("Immagine Google non disponibile, rimango con default.");
+            // Non facciamo nulla: l'immagine di default è già lì sotto!
+        };
     }
+
 };

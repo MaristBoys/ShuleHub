@@ -1,128 +1,161 @@
 // src/features/dashboard/DashboardView.js
 export class DashboardView {
-    /**
-     * Carica il template HTML e renderizza i componenti dinamici
-     * @param {Object} user - Dati dell'utente dal UserModel
-     * @param {Array} features - Lista delle funzionalità filtrate dal Controller
-     * @param {string} containerId - ID del contenitore principale (default: 'main-content')
-     */
-    static async render(user, features, containerId = 'main-content') {
+    
+    static async render(user, features, stats, containerId = 'main-content') {
         const container = document.getElementById(containerId);
         if (!container) return;
 
         try {
-            // 1. Caricamento asincrono del template (Strategia Ibrida)
-            // Il percorso deve essere relativo alla root del progetto servita da Vite
             const response = await fetch('src/features/dashboard/dashboard.html');
+            if (!response.ok) throw new Error('Template non trovato');
             
-            if (!response.ok) {
-                throw new Error('Impossibile caricare il template della Dashboard');
-            }
-            
-            const html = await response.text();
-            container.innerHTML = html;
+            container.innerHTML = await response.text();
+            this.fillHeader(container, user);
 
-            // 2. Popolamento Header Dinamico
-            const welcomeTitle = container.querySelector('#dashboard-welcome-title');
-            const profileInfo = container.querySelector('#dashboard-profile-info');
-            const dateDisplay = container.querySelector('#current-date');
-
-            if (welcomeTitle) welcomeTitle.textContent = `Welcome back, ${user.username}`;
-            if (profileInfo) profileInfo.textContent = `${user.profileName} Area`;
-            if (dateDisplay) dateDisplay.textContent = new Date().toLocaleDateString('en-GB', { 
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' 
-            });
-
-            // 3. Renderizzazione delle Card nella Griglia
             const grid = container.querySelector('#dashboard-grid');
             if (grid) {
-                grid.innerHTML = ''; // Pulizia di sicurezza
+                grid.innerHTML = ''; 
                 features.forEach(feature => {
-                    const card = this.createCard(user, feature);
-                    grid.appendChild(card);
+                    grid.appendChild(this.createCard(user, feature, stats));
                 });
             }
-
         } catch (error) {
-            console.error('Dashboard Render Error:', error);
-            container.innerHTML = `
-                <div class="p-8 text-center text-red-600">
-                    <p class="font-bold">Error loading Dashboard</p>
-                    <p class="text-sm">${error.message}</p>
-                </div>
-            `;
+            console.error('Render Error:', error);
+            container.innerHTML = `<div class="p-8 text-red-600">Error loading view</div>`;
         }
     }
 
     /**
-     * Crea l'elemento DOM per una singola card
+     * Inserisce i dati utente e di sistema nell'header in modo compatto
      */
-    static createCard(user, feature) {
-        const div = document.createElement('div');
-        // Classi Tailwind originali per mantenere lo stile
-        div.className = "bg-white/90 backdrop-blur-sm p-6 rounded-2xl shadow-xl border border-white/50 hover:scale-105 transition-transform cursor-pointer flex flex-col items-center text-center";
+    static fillHeader(container, user) {
+        const welcomeTitle = container.querySelector('#dashboard-welcome-title');
+        const profileInfo = container.querySelector('#dashboard-profile-info');
+        const dateDisplay = container.querySelector('#current-date');
+
+        // Cambiamo il titolo in qualcosa di operativo (o lo lasciamo statico nell'HTML)
+        //if (welcomeTitle) welcomeTitle.textContent = "Operational Overview";
         
-        // Logica specifica per il widget Classes o Card Standard
-        if (feature.id === 'classes') {
-            div.innerHTML = this.renderClassesWidget(user, feature);
-        } else {
-            div.innerHTML = `
-                <img src="./assets/icons/${feature.icon}" alt="${feature.title}" class="w-16 h-16 mb-4">
-                <h3 class="text-xl font-bold text-blue-900">${feature.title}</h3>
-                <p class="text-gray-500 text-sm mt-2">Manage ${feature.title.toLowerCase()}</p>
-            `;
+        // Etichetta del profilo (es. ADMIN AREA)
+        if (profileInfo) profileInfo.textContent = `${user.profileName} Access`;
+        
+        // Data formattata in modo breve (es. Sat, 28 Feb 2026)
+        if (dateDisplay) {
+            dateDisplay.textContent = new Date().toLocaleDateString('en-GB', { 
+                weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' 
+            });
         }
-
-        // Event listener per la navigazione
-        div.onclick = () => {
-            console.log(`Navigating to ${feature.id}`);
-            // Qui potrai inserire: window.location.hash = `#${feature.id}`;
-        };
-
-        return div;
     }
 
     /**
-     * Genera l'HTML interno per il widget delle classi (Docenti/Admin)
+     * ORCHESTRATORE CREAZIONE CARD
+     * Decide quale tipo di contenuto iniettare in base alla feature
      */
-    static renderClassesWidget(user, feature) {
-        let content = `
-            <img src="./assets/icons/${feature.icon}" alt="Classes" class="w-16 h-16 mb-4">
-            <h3 class="text-xl font-bold text-blue-900 mb-3">${feature.title}</h3>
+    static createCard(user, feature, stats) {
+        const card = document.createElement('div');
+        // Classi base per tutte le card (compatte)
+        card.className = "bg-white/90 backdrop-blur-sm py-4 px-5 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col h-full overflow-hidden";
+        
+        // 1. Header (Icona + Titolo) - Comune a tutte
+        const headerHtml = `
+            <div class="flex items-center gap-4 mb-3 border-b border-gray-100 pb-2">
+                <img src="./assets/icons/${feature.icon}" alt="${feature.title}" class="w-10 h-10 object-contain">
+                <h3 class="text-lg font-bold text-blue-900 tracking-tight">${feature.title}</h3>
+            </div>
         `;
 
-        // A. VISTA GESTIONALE (Per chi non è solo TEACHER)
-        if (user.profileName !== 'TEACHER') {
-            content += `
-                <div class="bg-blue-50 rounded-lg p-3 w-full mb-3">
-                    <span class="text-2xl font-bold text-blue-700">All Rooms</span>
-                    <p class="text-[10px] text-blue-500 uppercase font-bold">Global Access</p>
-                </div>
-            `;
+        // 2. Body Dinamico - Delegato a metodi specifici
+        let bodyHtml = '';
+        
+        switch (feature.id) {
+            case 'config':
+                bodyHtml = stats ? this._renderConfigBody(stats.school) : this._renderPlaceholder(feature);
+                break;
+            case 'students':
+                bodyHtml = stats ? this._renderRegistryBody(stats.students, 'Students', 'text-green-600') : this._renderPlaceholder(feature);
+                break;
+            case 'employees':
+                bodyHtml = stats ? this._renderRegistryBody(stats.employees, 'Staff', 'text-blue-700') : this._renderPlaceholder(feature);
+                break;
+            case 'classes':
+                bodyHtml = this._renderClassesWidgetBody(user);
+                break;
+            default:
+                bodyHtml = this._renderPlaceholder(feature);
         }
 
-        // B. VISTA OPERATIVA (Se ha classi assegnate)
-        const assignments = user.teacherContext?.assignments || [];
-        if (assignments.length > 0) {
-            content += `
-                <div class="w-full text-left mt-2">
-                    <p class="text-[10px] font-bold text-gray-400 uppercase mb-2 tracking-wider">My Teaching</p>
-                    <div class="space-y-1">
-                        ${assignments.slice(0, 4).map(asg => `
-                            <div class="flex justify-between items-center bg-gray-50 p-2 rounded border-l-4 ${asg.classTeacher ? 'border-amber-400' : 'border-blue-400'}">
-                                <span class="text-xs font-bold text-gray-700">${asg.yearRoomName}</span>
-                                <span class="text-[10px] text-gray-500">${asg.subjectName}</span>
-                            </div>
-                        `).join('')}
-                        ${assignments.length > 4 ? '<p class="text-[10px] text-center text-blue-500 mt-1">...and more</p>' : ''}
+        card.innerHTML = headerHtml + bodyHtml;
+        card.onclick = () => window.location.hash = `#${feature.id}`;
+        
+        return card;
+    }
+
+    // --- METODI PRIVATI DI SUPPORTO (PULIZIA) ---
+
+    /** Corpo Card School Config (Le 3 righe) */
+    static _renderConfigBody(schoolStats) {
+        const rows = [
+            { label: 'Current Year', value: schoolStats.currentYear, icon: '📅', target: 'year' },
+            { label: 'Active Rooms', value: schoolStats.activeRoomsCount, icon: '🚪', target: 'rooms' },
+            { label: 'Active Subjects', value: schoolStats.totalSubjectsCount, icon: '📚', target: 'subjects' }
+        ];
+
+        return `
+            <div class="flex flex-col gap-1">
+                ${rows.map(row => `
+                    <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-gray-50/50 hover:bg-blue-50 transition-colors group" 
+                         onclick="event.stopPropagation(); window.location.hash='#config/${row.target}'">
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm">${row.icon}</span>
+                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">${row.label}</span>
+                        </div>
+                        <span class="text-base font-black text-blue-900">${row.value || 0}</span>
                     </div>
-                </div>
-            `;
-        } else if (user.profileName === 'TEACHER') {
-            // Caso docente senza classi assegnate
-            content += `<p class="text-xs text-gray-400 italic mt-2">No classes assigned yet</p>`;
-        }
+                `).join('')}
+            </div>
+        `;
+    }
 
-        return content;
+    /** Corpo Card Registry (Students/Employees) */
+    static _renderRegistryBody(data, label, colorClass) {
+        return `
+            <div class="mt-1">
+                <div class="flex items-baseline gap-2">
+                    <span class="text-3xl font-black ${colorClass}">${data.activeStudentsCount || data.activeEmployeesCount || 0}</span>
+                    <span class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">${label}</span>
+                </div>
+                ${this._getBadgeHtml(data.enrolledThisYearCount, 'New this year')}
+            </div>
+        `;
+    }
+
+    /** Widget Classi (Docenti) */
+    static _renderClassesWidgetBody(user) {
+        const assignments = user.teacherContext?.assignments || [];
+        if (assignments.length === 0) return `<p class="text-gray-400 text-xs italic mt-2">No active classes</p>`;
+
+        return `
+            <div class="space-y-1 mt-1">
+                ${assignments.slice(0, 3).map(asg => `
+                    <div class="flex justify-between items-center bg-gray-50 p-2 rounded border-l-4 ${asg.classTeacher ? 'border-amber-400' : 'border-blue-400'}">
+                        <span class="text-[10px] font-bold text-gray-700">${asg.yearRoomName}</span>
+                        <span class="text-[10px] text-gray-500">${asg.subjectName}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    static _renderPlaceholder(feature) {
+        return `<p class="text-gray-400 text-[11px] mt-2 italic tracking-tight">Manage ${feature.title.toLowerCase()} section</p>`;
+    }
+
+    static _getBadgeHtml(count, label) {
+        if (!count) return '';
+        return `
+            <div class="inline-block mt-2 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-[9px] font-bold border border-blue-100">
+                +${count} ${label}
+            </div>
+        `;
     }
 }

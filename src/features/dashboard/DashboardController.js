@@ -1,13 +1,10 @@
 // src/features/dashboard/DashboardController.js
 import { UserModel } from '../auth/UserModel.js';
 import { DashboardView } from './DashboardView.js';
+import { api } from '../../core/api.js'; // Importiamo il tuo file api.js
 
 export class DashboardController {
     
-    /**
-     * Configurazione statica delle funzionalità disponibili nella dashboard.
-     * Ogni feature è legata a un permesso specifico.
-     */
     static getFeaturesConfig() {
         return [
             { id: 'config', title: 'School Config', icon: 'config.png', perm: 'ADMIN_CONFIG' },
@@ -20,10 +17,8 @@ export class DashboardController {
     }
 
     /**
-     * Inizializza la logica della dashboard.
-     * Gestisce il controllo accessi e coordina il rendering della view.
+     * Inizializza la dashboard recuperando i dati tramite il sistema api.js
      */
-    // src/features/dashboard/DashboardController.js
     static async init() {
         const user = UserModel.getCurrentUser();
         if (!user) {
@@ -31,23 +26,39 @@ export class DashboardController {
             return;
         }
 
-        // Trasformiamo in maiuscolo per sicurezza
+        // 1. Logica permessi
         const role = user.profileName?.toUpperCase();
-        
-        // Creiamo il Set dei permessi solo se esistono, altrimenti Set vuoto
         const userPermissions = new Set(user.permissions || []);
-
         const filteredFeatures = this.getFeaturesConfig().filter(f => {
-            // 1. Se è ADMIN vede tutto
             if (role === 'ADMIN') return true;
-
-            // 2. Altrimenti controllo permessi
             return userPermissions.has(f.perm) || 
                 (f.id === 'classes' && userPermissions.has('ACCESS_TEACHER_AREA'));
         });
 
-        console.log("Features for Admin:", filteredFeatures); // Debug: guarda la console!
+        try {
+            // 2. Chiamata API tramite il tuo metodo fetchWithLoader
+            // Nota: passiamo il messaggio per il loader automatico
+            const response = await api.fetchWithLoader(
+                '/api/v1/dashboard/summary', 
+                { method: 'GET' },
+                'Loading Dashboard...'
+            );
 
-        await DashboardView.render(user, filteredFeatures);
+            if (!response.ok) throw new Error('Failed to fetch dashboard data');
+
+            const result = await response.json();
+
+            // 3. Rendering con dati reali (result.data contiene il DashboardSummaryDTO)
+            if (result.success) {
+                await DashboardView.render(user, filteredFeatures, result.data);
+            } else {
+                throw new Error(result.message);
+            }
+
+        } catch (error) {
+            console.error('Dashboard Init Error:', error);
+            // Fallback: renderizza comunque la struttura base
+            await DashboardView.render(user, filteredFeatures, null);
+        }
     }
 }

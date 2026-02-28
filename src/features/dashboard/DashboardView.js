@@ -106,7 +106,7 @@ export class DashboardView {
                     <div class="flex items-center justify-between 
                                 py-3 px-3 
                                 rounded-xl 
-                                bg-gray-100
+                                bg-gray-300/20 border border-gray-200
                                 hover:bg-blue-50 
                                 active:bg-blue-100 active:scale-[0.98]
                                 transition-all duration-150 
@@ -115,7 +115,7 @@ export class DashboardView {
 
                         <div class="flex items-center gap-3">
                             <span class="text-sm">${row.icon}</span>
-                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                            <span class="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
                                 ${row.label}
                             </span>
                         </div>

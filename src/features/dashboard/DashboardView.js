@@ -124,7 +124,7 @@ export class DashboardView {
                             <span class="text-base font-black text-blue-900">
                                 ${row.value || 0}
                             </span>
-                            <span class="text-gray-400 text-sm">›</span>
+                            <span class="text-gray-500 text-xl font-bold">›</span>
                         </div>
                     </div>
                 `).join('')}

@@ -101,15 +101,31 @@ export class DashboardView {
         ];
 
         return `
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-2">
                 ${rows.map(row => `
-                    <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-gray-50/50 hover:bg-blue-50 transition-colors group" 
-                         onclick="event.stopPropagation(); window.location.hash='#config/${row.target}'">
+                    <div class="flex items-center justify-between 
+                                py-3 px-3 
+                                rounded-xl 
+                                bg-gray-100
+                                hover:bg-blue-50 
+                                active:bg-blue-100 active:scale-[0.98]
+                                transition-all duration-150 
+                                cursor-pointer group"
+                        onclick="event.stopPropagation(); window.location.hash='#config/${row.target}'">
+
                         <div class="flex items-center gap-3">
                             <span class="text-sm">${row.icon}</span>
-                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">${row.label}</span>
+                            <span class="text-[10px] font-semibold text-gray-500 uppercase tracking-wider">
+                                ${row.label}
+                            </span>
                         </div>
-                        <span class="text-base font-black text-blue-900">${row.value || 0}</span>
+
+                        <div class="flex items-center gap-2">
+                            <span class="text-base font-black text-blue-900">
+                                ${row.value || 0}
+                            </span>
+                            <span class="text-gray-400 text-sm">›</span>
+                        </div>
                     </div>
                 `).join('')}
             </div>

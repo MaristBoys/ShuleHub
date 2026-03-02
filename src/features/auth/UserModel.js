@@ -42,6 +42,7 @@ export const UserModel = {
     logout() {
         storage.clearAll();
         // Lanciamo un evento globale per notificare il resto dell'app che l'utente ha effettuato il logout
+        // esempio alla navbar che deve aggiornare i tasti, o al router che deve reindirizzare alla welcome
         window.dispatchEvent(new CustomEvent('app:logout'));
     }
 };

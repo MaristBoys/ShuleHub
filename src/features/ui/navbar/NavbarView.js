@@ -1,5 +1,6 @@
 // src/features/ui/navbar/NavbarView.js
 import { UserModel } from '../../auth/UserModel.js';
+import { AuthController } from '../../auth/AuthController.js'; // Importa il controller per gestire il logout
 
 export const NavbarView = {
     async render() {
@@ -48,7 +49,7 @@ export const NavbarView = {
                     </div>
                 </a>
                 
-		<a href="#dashboard" title="Home" class="hover:scale-110 transition-transform">
+		        <a href="#dashboard" title="Home" class="hover:scale-110 transition-transform">
                 	<img src="./assets/icons/navbar_icona_2_32px.png" alt="Home" class="w-8 h-8 object-contain">
             	</a>
 
@@ -61,11 +62,13 @@ export const NavbarView = {
 
         this.loadProfileImage(user.pictureUrl);
         
-        // Listener Logout (come prima)
-        document.getElementById('logout-btn').onclick = () => {
-            UserModel.logout();
-            window.dispatchEvent(new CustomEvent('app:logout'));
+        document.getElementById('logout-btn').onclick = async (e) => {
+            e.preventDefault(); // Evita scroll o ricariche strane
+    
+            // Importante: assicurati che AuthController sia importato in cima al file NavbarView
+            await AuthController.logout();
         };
+
     },
 
     loadProfileImage(url) {

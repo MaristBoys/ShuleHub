@@ -71,7 +71,7 @@ export const AuthController = {
                     case 'ERR_MISSING_TOKEN':   msg = "Technical issue: token missing. Refresh page."; break;
                 }
 
-                FeedbackView.show('error', msg); 
+                FeedbackView.show('error', msg, "Login Failed"); 
                 return;
             }
             
@@ -80,8 +80,7 @@ export const AuthController = {
             UserModel.saveUser(result); 
 
             // Mostriamo il messaggio di benvenuto
-            FeedbackView.show('success', `Welcome back, ${result.data.profileName}!`);
-
+            FeedbackView.show('success', `Welcome back, ${result.data.username}!`, "Login Successful");
             // Navigazione ritardata per permettere la lettura del feedback
             setTimeout(() => {
                 Router.navigate();
@@ -92,7 +91,7 @@ export const AuthController = {
             console.error("DEBUG LOGIN ERROR:", error); 
     
             // Mostra un messaggio più specifico nel modale
-            FeedbackView.show('error', `Connection error: ${error.message}`);
+            FeedbackView.show('error', `Connection error: ${error.message}`, "Login Failed");
         }
     },
 
@@ -121,12 +120,11 @@ export const AuthController = {
             UserModel.logout();
 
             // 3. Feedback visivo all'utente
-            FeedbackView.show('success', "Logged out successfully. See you soon!");
-
+            FeedbackView.show('success', "Logged out successfully. See you soon!", "Logout");
             // 4. Reindirizzamento alla pagina di login dopo 1 secondo
             setTimeout(() => {
                 window.location.href = 'index.html';
-            }, 1000);
+            }, 2000);
         }
     },
 };

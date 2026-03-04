@@ -40,8 +40,8 @@ export const FeedbackView = {
                 </p>
 
                 ${isError 
-                    ? `<button id="feedback-close-btn" class="w-full py-3 bg-blue-900 text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors">Chiudi</button>`
-                    : `<div class="text-blue-600 font-medium text-xs animate-pulse italic">Attendere...</div>`
+                    ? `<button id="feedback-close-btn" class="w-full py-3 bg-blue-900 text-white rounded-xl font-semibold hover:bg-blue-800 transition-colors">Close</button>`
+                    : `<div class="text-blue-600 font-medium text-xs animate-pulse italic">Waiting...</div>`
                 }
             </div>
         `;

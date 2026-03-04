@@ -1,4 +1,7 @@
 // src/features/dashboard/DashboardView.js
+
+import { YearModal } from '../school-config/modals/YearModal.js';   
+
 export class DashboardView {
     
     static async render(user, features, stats, containerId = 'main-content') {
@@ -16,7 +19,9 @@ export class DashboardView {
             if (grid) {
                 grid.innerHTML = ''; 
                 features.forEach(feature => {
-                    grid.appendChild(this.createCard(user, feature, stats));
+                    const card = this.createCard(user, feature, stats);
+                    if (feature.id === 'config') this._setupConfigListeners(card); // Funziona subito perché l'oggetto esiste già in memoria
+                    grid.appendChild(card);
                 });
             }
         } catch (error) {
@@ -54,13 +59,17 @@ export class DashboardView {
     static createCard(user, feature, stats) {
         const card = document.createElement('div');
         // Classi base per tutte le card (compatte)
-        card.className = "bg-white/90 backdrop-blur-sm py-4 px-5 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all cursor-pointer flex flex-col h-full overflow-hidden";
+        card.className = "bg-white/90 backdrop-blur-sm py-4 px-5 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all flex flex-col h-full overflow-hidden";
         
-        // 1. Header (Icona + Titolo) - Comune a tutte
         const headerHtml = `
-            <div class="flex items-center gap-4 mb-3 border-b border-gray-100 pb-2">
-                <img src="./assets/icons/${feature.icon}" alt="${feature.title}" class="w-10 h-10 object-contain">
-                <h3 class="text-lg font-bold text-blue-900 tracking-tight">${feature.title}</h3>
+            <div class="dashboard-card-header flex items-center justify-between mb-3 border-b border-gray-100 pb-2 cursor-pointer group">
+                <div class="flex items-center gap-4">
+                    <img src="./assets/icons/${feature.icon}" alt="${feature.title}" class="w-10 h-10 object-contain group-hover:scale-110 transition-transform">
+                    <h3 class="text-lg font-bold text-blue-900 tracking-tight group-hover:text-blue-600">${feature.title}</h3>
+                </div>
+                <span class="text-gray-300 group-hover:text-blue-500 transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </span>
             </div>
         `;
 
@@ -85,8 +94,13 @@ export class DashboardView {
         }
 
         card.innerHTML = headerHtml + bodyHtml;
-        card.onclick = () => window.location.hash = `#${feature.id}`;
         
+        // Listener solo per l'header
+        const header = card.querySelector('.dashboard-card-header');
+        header.onclick = () => {
+            window.location.hash = `#${feature.id}`;
+        };
+
         return card;
     }
 
@@ -95,25 +109,22 @@ export class DashboardView {
     /** Corpo Card School Config (Le 3 righe) */
     static _renderConfigBody(schoolStats) {
         const rows = [
-            { label: 'Current Year', value: schoolStats.currentYear, icon: '📅', target: 'year' },
-            { label: 'Active Rooms', value: schoolStats.activeRoomsCount, icon: '🚪', target: 'rooms' },
-            { label: 'Active Subjects', value: schoolStats.totalSubjectsCount, icon: '📚', target: 'subjects' }
+            { label: 'Current Year', value: schoolStats.currentYear, icon: '📅', type: 'year' },
+            { label: 'Active Rooms', value: schoolStats.activeRoomsCount, icon: '🚪', type: 'rooms' },
+            { label: 'Active Subjects', value: schoolStats.totalSubjectsCount, icon: '📚', type: 'subjects' }
         ];
 
         return `
             <div class="flex flex-col gap-2">
                 ${rows.map(row => `
-                    <div class="flex items-center justify-between 
-                                py-3 px-3 
-                                rounded-xl 
+                    <div class="config-row-btn flex items-center justify-between 
+                                py-3 px-3 rounded-xl 
                                 bg-gray-300/20 border border-gray-200
                                 hover:bg-blue-50 
                                 active:bg-blue-100 active:scale-[0.98]
                                 transition-all duration-150 
                                 cursor-pointer group"
-                        onclick="event.stopPropagation(); window.location.hash='#config/${row.target}'">
-
-                        <div class="flex items-center gap-3">
+                        data-type="${row.type}"> <div class="flex items-center gap-3">
                             <span class="text-sm">${row.icon}</span>
                             <span class="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
                                 ${row.label}
@@ -174,4 +185,35 @@ export class DashboardView {
             </div>
         `;
     }
+
+    static _setupConfigListeners(card) {
+    // Cerchiamo le righe con la classe che abbiamo appena aggiunto nel render
+        const rows = card.querySelectorAll('.config-row-btn');
+        
+        rows.forEach(row => {
+            row.onclick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const type = row.dataset.type;
+                console.log("Config row clicked, type:", type); // Controlla in console se lo vedi!
+
+                switch (type) {
+                    case 'year':
+                        YearModal.show();
+                        break;
+                    case 'rooms':
+                        console.log("Navigazione verso Matrice Rooms");
+                        // window.location.hash = '#config/rooms';
+                        break;
+                    case 'subjects':
+                        console.log("Apertura Modale Subjects");
+                        break;
+                    default:
+                        console.warn("Tipo di riga non riconosciuto:", type);
+                }
+            };
+        });
+    }
+
 }

@@ -38,7 +38,7 @@ export const AuthController = {
             if (!api.isServerAwake) {
                 const waitMsg = "Connecting to the server... up to 90s";
                 LoaderView.show(waitMsg);
-                LoaderView.startCountdown(90); // Avvia il countdown grafico
+                LoaderView.startCountdown(120); // Avvia il countdown grafico
                 
                 // Loop di attesa finché il server non risponde
                 while (!api.isServerAwake) {

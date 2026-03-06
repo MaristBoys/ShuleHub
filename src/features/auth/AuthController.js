@@ -3,6 +3,7 @@ import { api } from '../../core/api.js';
 import { UserModel } from './UserModel.js';
 import { LoaderView } from '../../core/LoaderView.js';
 import { FeedbackView } from '../../core/FeedbackView.js'; // Assicurati che l'import sia corretto
+import { ToastView } from '../../core/ToastView.js'; 
 import { Router } from '../../router.js';
 
 export const AuthController = {
@@ -80,7 +81,8 @@ export const AuthController = {
             UserModel.saveUser(result); 
 
             // Mostriamo il messaggio di benvenuto
-            FeedbackView.show('success', `Welcome back, ${result.data.username}!`, "Login Successful");
+            //FeedbackView.show('success', `Welcome back, ${result.data.username}!`, "Login Successful");
+            ToastView.show(`Welcome back, ${result.data.username}!`, 'success', 5000);
             // Navigazione ritardata per permettere la lettura del feedback
             setTimeout(() => {
                 Router.navigate();
@@ -120,7 +122,8 @@ export const AuthController = {
             UserModel.logout();
 
             // 3. Feedback visivo all'utente
-            FeedbackView.show('success', "Logged out successfully. See you soon!", "Logout");
+            //FeedbackView.show('success', "Logged out successfully. See you soon!", "Logout");
+            ToastView.show("Logged out successfully. See you soon!", 'info', 3000);
             // 4. Reindirizzamento alla pagina di login dopo 1 secondo
             setTimeout(() => {
                 window.location.href = 'index.html';

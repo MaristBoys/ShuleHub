@@ -3,6 +3,7 @@ import { ConfigService } from '../services/ConfigService.js';
 import { DashboardController } from '../../dashboard/DashboardController.js';
 import { FeedbackView } from '../../../core/FeedbackView.js';
 import { ConfirmView } from '../../../core/ConfirmView.js';
+import { ToastView } from '../../../core/ToastView.js';
 
 export const YearModal = {
     /**
@@ -94,7 +95,9 @@ export const YearModal = {
                         const result = await ConfigService.activateYear(yearId);
                         if (result.success) {
                             this._close();
-                            FeedbackView.show('success', `Academic year ${yearVal} is now active.`, "System Updated");
+                            //FeedbackView.show('success', `Academic year ${yearVal} is now active.`, "System Updated");
+                            
+                            ToastView.show(`Academic year ${yearVal} is now active.`, 'success', 5000);
                             DashboardController.init();
                         } else {
                             FeedbackView.show('error', result.message, "Update Failed");

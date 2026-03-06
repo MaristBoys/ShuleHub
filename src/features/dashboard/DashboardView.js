@@ -1,10 +1,18 @@
 // src/features/dashboard/DashboardView.js
 
-import { YearModal } from '../school-config/modals/YearModal.js';   
+import { YearModal } from '../school-config/modals/YearModal.js';
+import { ConfigCardView } from './components/ConfigCardView.js';   
 
 export class DashboardView {
     
-    static async render(user, features, stats, containerId = 'main-content') {
+    /**
+     * @param {Object} user - Utente corrente
+     * @param {Array} features - Card filtrate dal Controller (Livello 1)
+     * @param {Object} stats - Dati dal backend
+     * @param {Set} userPermissions - Set di stringhe dei permessi (Livello 2)
+     * @param {Boolean} hasAllAccess - Flag per il permesso ALL_ACCESS
+     */
+    static async render(user, features, stats, userPermissions, hasAllAccess, containerId = 'main-content') {
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -19,8 +27,17 @@ export class DashboardView {
             if (grid) {
                 grid.innerHTML = ''; 
                 features.forEach(feature => {
-                    const card = this.createCard(user, feature, stats);
-                    if (feature.id === 'config') this._setupConfigListeners(card); // Funziona subito perché l'oggetto esiste già in memoria
+                    let card;
+
+                    // Gestione differenziata: Card Spacchettate vs Card Standard
+                    if (feature.id === 'config') {
+                        // Passiamo i permessi e il jolly al componente specializzato
+                        card = ConfigCardView.render(stats, feature, userPermissions, hasAllAccess);
+                    } else {
+                        // Per le altre card usiamo il vecchio creatore generico (da spacchettare in futuro)
+                        card = this.createCard(user, feature, stats); 
+                    }
+                    
                     grid.appendChild(card);
                 });
             }
@@ -31,20 +48,14 @@ export class DashboardView {
     }
 
     /**
-     * Inserisce i dati utente e di sistema nell'header in modo compatto
+     * Inserisce i dati utente e di sistema nell'header
      */
     static fillHeader(container, user) {
-        const welcomeTitle = container.querySelector('#dashboard-welcome-title');
         const profileInfo = container.querySelector('#dashboard-profile-info');
         const dateDisplay = container.querySelector('#current-date');
 
-        // Cambiamo il titolo in qualcosa di operativo (o lo lasciamo statico nell'HTML)
-        //if (welcomeTitle) welcomeTitle.textContent = "Operational Overview";
-        
-        // Etichetta del profilo (es. ADMIN AREA)
         if (profileInfo) profileInfo.textContent = `${user.profileName} Access`;
         
-        // Data formattata in modo breve (es. Sat, 28 Feb 2026)
         if (dateDisplay) {
             dateDisplay.textContent = new Date().toLocaleDateString('en-GB', { 
                 weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' 
@@ -53,12 +64,10 @@ export class DashboardView {
     }
 
     /**
-     * ORCHESTRATORE CREAZIONE CARD
-     * Decide quale tipo di contenuto iniettare in base alla feature
+     * Creatore generico per le card non ancora migrate ai componenti esterni
      */
     static createCard(user, feature, stats) {
         const card = document.createElement('div');
-        // Classi base per tutte le card (compatte)
         card.className = "bg-white/90 backdrop-blur-sm py-4 px-5 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all flex flex-col h-full overflow-hidden";
         
         const headerHtml = `
@@ -73,13 +82,9 @@ export class DashboardView {
             </div>
         `;
 
-        // 2. Body Dinamico - Delegato a metodi specifici
         let bodyHtml = '';
         
         switch (feature.id) {
-            case 'config':
-                bodyHtml = stats ? this._renderConfigBody(stats.school) : this._renderPlaceholder(feature);
-                break;
             case 'students':
                 bodyHtml = stats ? this._renderRegistryBody(stats.students, 'Students', 'text-green-600') : this._renderPlaceholder(feature);
                 break;
@@ -95,7 +100,6 @@ export class DashboardView {
 
         card.innerHTML = headerHtml + bodyHtml;
         
-        // Listener solo per l'header
         const header = card.querySelector('.dashboard-card-header');
         header.onclick = () => {
             window.location.hash = `#${feature.id}`;
@@ -104,46 +108,6 @@ export class DashboardView {
         return card;
     }
 
-    // --- METODI PRIVATI DI SUPPORTO (PULIZIA) ---
-
-    /** Corpo Card School Config (Le 3 righe) */
-    static _renderConfigBody(schoolStats) {
-        const rows = [
-            { label: 'Current Year', value: schoolStats.currentYear, icon: '📅', type: 'year' },
-            { label: 'Active Rooms', value: schoolStats.activeRoomsCount, icon: '🚪', type: 'rooms' },
-            { label: 'Active Subjects', value: schoolStats.totalSubjectsCount, icon: '📚', type: 'subjects' }
-        ];
-
-        return `
-            <div class="flex flex-col gap-2">
-                ${rows.map(row => `
-                    <div class="config-row-btn flex items-center justify-between 
-                                py-3 px-3 rounded-xl 
-                                bg-gray-300/20 border border-gray-200
-                                hover:bg-blue-50 
-                                active:bg-blue-100 active:scale-[0.98]
-                                transition-all duration-150 
-                                cursor-pointer group"
-                        data-type="${row.type}"> <div class="flex items-center gap-3">
-                            <span class="text-sm">${row.icon}</span>
-                            <span class="text-[12px] font-semibold text-gray-500 uppercase tracking-wider">
-                                ${row.label}
-                            </span>
-                        </div>
-
-                        <div class="flex items-center gap-2">
-                            <span class="text-base font-black text-blue-900">
-                                ${row.value || 0}
-                            </span>
-                            <span class="text-gray-500 text-xl font-bold">›</span>
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    /** Corpo Card Registry (Students/Employees) */
     static _renderRegistryBody(data, label, colorClass) {
         return `
             <div class="mt-1">
@@ -156,7 +120,6 @@ export class DashboardView {
         `;
     }
 
-    /** Widget Classi (Docenti) */
     static _renderClassesWidgetBody(user) {
         const assignments = user.teacherContext?.assignments || [];
         if (assignments.length === 0) return `<p class="text-gray-400 text-xs italic mt-2">No active classes</p>`;
@@ -185,35 +148,4 @@ export class DashboardView {
             </div>
         `;
     }
-
-    static _setupConfigListeners(card) {
-    // Cerchiamo le righe con la classe che abbiamo appena aggiunto nel render
-        const rows = card.querySelectorAll('.config-row-btn');
-        
-        rows.forEach(row => {
-            row.onclick = (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                const type = row.dataset.type;
-                console.log("Config row clicked, type:", type); // Controlla in console se lo vedi!
-
-                switch (type) {
-                    case 'year':
-                        YearModal.show();
-                        break;
-                    case 'rooms':
-                        console.log("Navigazione verso Matrice Rooms");
-                        // window.location.hash = '#config/rooms';
-                        break;
-                    case 'subjects':
-                        console.log("Apertura Modale Subjects");
-                        break;
-                    default:
-                        console.warn("Tipo di riga non riconosciuto:", type);
-                }
-            };
-        });
-    }
-
 }

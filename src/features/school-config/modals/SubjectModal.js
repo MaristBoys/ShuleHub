@@ -159,15 +159,12 @@ export const SubjectModal = {
                 }
             };
         });
-        
+
         // Listener per i dettagli
         document.querySelectorAll('.detail-btn').forEach(btn => {
             btn.onclick = () => this._openDetail(btn.dataset.id);
         });
     },
-
-
-    
 
     async _openDetail(subjectId) {
         let subject = null;

@@ -18,6 +18,7 @@ export const ConfigCardView = {
         const schoolData = stats?.school || {};
         
         // Mappatura permessi micro per riga
+        // indico i permessi che servono per vedere o editare ogni singola riga, così da gestire i lucchetti in modo granulare (Livello 2)
         const rows = [
             { 
                 id: 'year', label: 'Current Year', value: schoolData.currentYear, icon: '📅', 
@@ -29,7 +30,7 @@ export const ConfigCardView = {
             },
             { 
                 id: 'subjects', label: 'Active Subjects', value: schoolData.totalSubjectsCount, icon: '📚', 
-                perm: 'CONFIG_EDIT_SUBJECTS' 
+                perm: 'CONFIG_VIEW_SUBJECTS' 
             }
         ];
         
@@ -91,11 +92,12 @@ export const ConfigCardView = {
         `;
     },
 
+    // Configura i listener per le righe cliccabili, aprendo i modali corrispondenti (Livello 3)
     _setupListeners(card, userPermissions, hasAllAccess) {
         card.querySelectorAll('[data-type]').forEach(row => {
             row.onclick = (e) => {
                 e.stopPropagation();
-                const { type, clickable } = row.dataset;
+                const { type, clickable } = row.dataset; // type indica quale riga è stata cliccata (year, rooms, subjects), clickable indica se l'utente ha il permesso per accedere a quella riga row.dataset.perm è il permesso specifico per quella riga, ma non ci serve perché abbiamo già calcolato clickable a livello di riga
                 
                 // Se non è cliccabile (nemmeno in sola lettura), facciamo l'animazione shake
                 if (clickable !== "true") {

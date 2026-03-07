@@ -31,17 +31,20 @@ export class DashboardController {
 
         const userPermissions = new Set(user.permissions || []);
         
-        // 1. Il potere assoluto (Sblocca TUTTO nel sistema)
-        const hasAllAccess = userPermissions.has('ALL_ACCESS');
+        // --- DEFINIZIONE PASSEPARTOUT ---
+        const hasAllAccess = userPermissions.has('ALL_ACCESS'); // Il potere assoluto (Sblocca TUTTO nel sistema)
+        const hasAllView = userPermissions.has('ALL_VIEW'); // Vede tutte le card, ma non sblocca i lucchetti interni (EDIT) nelle card
+        const hasViewAllDashboard = userPermissions.has('DASHBOARD_VIEW_ALL'); // Vede tutte le card della dashboard, ma non sblocca i lucchetti (EDIT) interni delle card
         
-        // 2. Il potere di visione totale (Vede tutte le card, ma non sblocca i lucchetti interni)
-        const hasViewAllDashboard = userPermissions.has('DASHBOARD_VIEW_ALL');
-
-        // --- LIVELLO 1: Filtro visibilità Card ---
+        // --- LIVELLO 1: Visibilità Card ---
+        // Una card è visibile se l'utente ha un potere superiore 
+        // o il permesso specifico della card
         const filteredFeatures = this.getFeaturesConfig().filter(f => 
-            hasAllAccess ||          // Se è SuperAdmin
-            hasViewAllDashboard ||   // Se ha visione totale dashboard
-            userPermissions.has(f.perm) // Se ha il permesso specifico della card
+            hasAllAccess || // Sblocca tutto
+            hasAllView || // Vede tutto nell'app
+            hasViewAllDashboard || // Vede tutte le card della dashboard
+            userPermissions.has(f.perm) // Permesso specifico della card
+            
         );
 
         try {
@@ -58,12 +61,14 @@ export class DashboardController {
                 // --- LIVELLO 2: Rendering ---
                 // Passiamo hasAllAccess separatamente perché serve a sbloccare i lucchetti (EDIT)
                 // nelle card, indipendentemente dal fatto che l'utente veda la card per DASHBOARD_VIEW_ALL
+                // passiamo anche hasAllView per sbloccare la visualizzazione completa e non far apparire i lucchetti di accesso negato   
                 await DashboardView.render(
                     user, 
                     filteredFeatures, 
                     result.data, 
                     userPermissions, 
-                    hasAllAccess
+                    hasAllAccess,
+                    hasAllView
                 );
             } else {
                 throw new Error(result.message);
@@ -71,7 +76,7 @@ export class DashboardController {
 
         } catch (error) {
             console.error('Dashboard Init Error:', error);
-            await DashboardView.render(user, filteredFeatures, null, userPermissions, hasAllAccess);
+            await DashboardView.render(user, filteredFeatures, null, userPermissions, hasAllAccess, hasAllView);
         }
     }
 }

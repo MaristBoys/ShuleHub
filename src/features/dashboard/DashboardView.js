@@ -11,8 +11,9 @@ export class DashboardView {
      * @param {Object} stats - Dati dal backend
      * @param {Set} userPermissions - Set di stringhe dei permessi (Livello 2)
      * @param {Boolean} hasAllAccess - Flag per il permesso ALL_ACCESS
+     * @param {Boolean} hasAllView - Flag per il permesso ALL_VIEW
      */
-    static async render(user, features, stats, userPermissions, hasAllAccess, containerId = 'main-content') {
+    static async render(user, features, stats, userPermissions, hasAllAccess, hasAllView, containerId = 'main-content') {
         const container = document.getElementById(containerId);
         if (!container) return;
 
@@ -32,7 +33,7 @@ export class DashboardView {
                     // Gestione differenziata: Card Spacchettate vs Card Standard
                     if (feature.id === 'config') {
                         // Passiamo i permessi e il jolly al componente specializzato
-                        card = ConfigCardView.render(stats, feature, userPermissions, hasAllAccess);
+                        card = ConfigCardView.render(stats, feature, userPermissions, hasAllAccess, hasAllView);
                     } else {
                         // Per le altre card usiamo il vecchio creatore generico (da spacchettare in futuro)
                         card = this.createCard(user, feature, stats); 

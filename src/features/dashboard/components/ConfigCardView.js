@@ -8,8 +8,9 @@ export const ConfigCardView = {
      * @param {Object} feature - Dati della card (titolo, icona)
      * @param {Set} userPermissions - Set dei permessi dell'utente
      * @param {Boolean} hasAllAccess - Flag per il permesso ALL_ACCESS
+     * @param {Boolean} hasAllView - Flag per il permesso ALL_VIEW  
      */
-    render(stats, feature, userPermissions, hasAllAccess) {
+    render(stats, feature, userPermissions, hasAllAccess, hasAllView) {
         const card = document.createElement('div');
         card.className = "bg-white/90 backdrop-blur-sm py-4 px-5 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all flex flex-col h-full overflow-hidden animate-in fade-in duration-500";
         
@@ -30,8 +31,8 @@ export const ConfigCardView = {
                 perm: 'CONFIG_EDIT_SUBJECTS' 
             }
         ];
-
-        // Rimosso chevron dal titolo e rimosso cursore pointer/listener dal titolo
+        
+        // insert rows into card HTML
         card.innerHTML = `
             <div class="dashboard-card-header flex items-center mb-3 border-b border-gray-100 pb-2">
                 <div class="flex items-center gap-4">
@@ -39,41 +40,43 @@ export const ConfigCardView = {
                     <h3 class="text-lg font-bold text-blue-900 tracking-tight">${feature.title}</h3>
                 </div>
             </div>
-            <div class="flex flex-col gap-2">
-                ${rows.map(row => {
-                    // LOGICA ALL_ACCESS: Se true, cliccabile a prescindere dal permesso specifico
-                    const isClickable = hasAllAccess || (userPermissions && userPermissions.has(row.perm));
-                    return this._generateRowHtml(row, isClickable);
-                }).join('')}
+            
+
+            <div class="flex-1 flex flex-col justify-center space-y-2">
+                ${rows.map(row => this._renderRow(row, userPermissions, hasAllAccess, hasAllView)).join('')}
             </div>
         `;
 
-        this._setupListeners(card);
+        // Passiamo i permessi ai listener per gestire i click
+        this._setupListeners(card, userPermissions, hasAllAccess);
         return card;
     },
 
-    _generateRowHtml(row, isClickable) {
-        const baseClass = "flex items-center justify-between py-3 px-3 rounded-xl transition-all duration-150";
-        const stateClass = isClickable 
-            ? "bg-gray-300/10 border border-gray-100 hover:bg-blue-50 cursor-pointer active:scale-[0.98] group/row" 
-            : "bg-gray-50 border border-transparent opacity-75 cursor-default";
-
+    /**
+     * Renderizza una riga della card con logica dei lucchetti (Livello 2)
+     */
+    _renderRow(row, userPermissions, hasAllAccess, hasAllView) {
+        // Una riga è cliccabile se l'utente ha ALL_VIEW (per vedere) o il permesso specifico (per editare)
+        // o ovviamente se ha ALL_ACCESS
+        const isClickable = hasAllAccess || hasAllView || userPermissions.has(row.perm);
+        
         return `
-            <div class="${baseClass} ${stateClass}" data-type="${row.id}" data-clickable="${isClickable}">
+            <div data-type="${row.id}" data-clickable="${isClickable}" 
+                 class="group/row flex items-center justify-between p-2.5 rounded-xl transition-all border border-transparent
+                 ${isClickable ? 'hover:bg-blue-50 hover:border-blue-100 cursor-pointer' : 'opacity-80 cursor-default'}">
+                
                 <div class="flex items-center gap-3">
-                    <span class="text-sm ${!isClickable ? 'grayscale opacity-50' : ''}">${row.icon}</span>
-                    <span class="text-[12px] font-semibold ${isClickable ? 'text-gray-500' : 'text-gray-400'} uppercase tracking-wider">
-                        ${row.label}
-                    </span>
+                    <span class="text-lg">${row.icon}</span>
+                    <div class="flex flex-col">
+                        <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter leading-none">${row.label}</span>
+                        <span class="text-sm font-black text-blue-900 mt-0.5 tracking-tight">${row.value || 0 }</span>
+                    </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                    <span class="text-base font-black ${isClickable ? 'text-blue-900' : 'text-gray-500'}">
-                        ${row.value || 0}
-                    </span>
+                <div class="flex items-center">
                     ${isClickable 
-                        ? `<div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center group-hover/row:bg-blue-600 transition-colors">
-                             <span class="text-blue-600 group-hover/row:text-white text-sm font-bold mb-0.5">›</span>
+                        ? `<div class="w-6 h-6 rounded-full bg-blue-50 flex items-center justify-center group-hover/row:bg-blue-600 transition-colors">
+                                <span class="text-blue-600 group-hover/row:text-white text-sm font-bold mb-0.5">›</span>
                            </div>` 
                         : `<div class="text-gray-300 pr-1">
                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -87,22 +90,36 @@ export const ConfigCardView = {
         `;
     },
 
-    _setupListeners(card) {
+    _setupListeners(card, userPermissions, hasAllAccess) {
         card.querySelectorAll('[data-type]').forEach(row => {
             row.onclick = (e) => {
                 e.stopPropagation();
                 const { type, clickable } = row.dataset;
                 
+                // Se non è cliccabile (nemmeno in sola lettura), facciamo l'animazione shake
                 if (clickable !== "true") {
                     row.classList.add('animate-shake');
                     setTimeout(() => row.classList.remove('animate-shake'), 400);
-                    ToastView.show("Access restricted", "warning");
+                    ToastView.show("Access restricted: Permissions required", "warning");
                     return;
                 }
 
-                if (type === 'year') YearModal.show();
-                if (type === 'rooms') console.log("Matrice Rooms");
-                if (type === 'subjects') console.log("Apertura Subjects");
+                // Apertura Modali con passaggio permessi di scrittura (Livello 3)
+                if (type === 'year') {
+                    // Passiamo i flag che serviranno allo YearModal per abilitare/disabilitare i bottoni di modifica
+                    const canEditYear = userPermissions.has('CONFIG_EDIT_YEAR');
+                    YearModal.show(hasAllAccess, canEditYear);
+                }
+                
+                if (type === 'rooms') {
+                    // Implementazione futura per Rooms
+                    ToastView.show("Rooms management coming soon", "info");
+                }
+
+                if (type === 'subjects') {
+                    // Implementazione futura per Subjects
+                    ToastView.show("Subjects configuration coming soon", "info");
+                }
             };
         });
     }

@@ -12,6 +12,7 @@ export const ConfigService = {
                 { method: 'GET' },
                 'Fetching years...'
             );
+            if (!response.ok) return []; // Se c'è un errore (403, 500, etc) restituisci array vuoto
             const result = await response.json();
             return result.success ? result.data : [];
         } catch (error) {

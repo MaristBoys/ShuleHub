@@ -1,15 +1,26 @@
 // src/features/school-config/modals/YearModal.js
-import { ConfigService } from '../services/ConfigService.js';
 import { DashboardController } from '../../dashboard/DashboardController.js';
+import { ConfigService } from '../services/ConfigService.js';
 import { FeedbackView } from '../../../core/FeedbackView.js';
 import { ConfirmView } from '../../../core/ConfirmView.js';
 import { ToastView } from '../../../core/ToastView.js';
 
 export const YearModal = {
+    // Stato interno per gestire il refresh mantenendo i permessi
+    _currentPerms: { hasAllAccess: false, canEditYear: false },
+
     /**
      * Mostra la lista degli anni accademici
+     * @param {Boolean} hasAllAccess - Permesso ALL_ACCESS
+     * @param {Boolean} canEditYear - Permesso specifico CONFIG_EDIT_YEAR
      */
-    async show() {
+    async show(hasAllAccess = false, canEditYear = false) {
+        // Memorizziamo i permessi per i refresh successivi (es. dopo creazione)
+        this._currentPerms = { hasAllAccess, canEditYear };
+        
+        // Un utente è autorizzato se ha l'accesso totale o il permesso specifico di editing
+        const isAuthorized = hasAllAccess || canEditYear;
+        
         const years = await ConfigService.getYears();
         
         const modalOverlay = document.createElement('div');
@@ -20,128 +31,175 @@ export const YearModal = {
             <div class="bg-white w-full sm:max-w-md rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in slide-in-from-bottom sm:zoom-in duration-300">
                 <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center">
                     <div>
-                        <h2 class="text-xl font-black text-blue-900 leading-none text-left">ACADEMIC YEARS</h2>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">System Configuration</p>
+                        <h2 class="text-xl font-black text-blue-900 leading-none text-left uppercase">Academic Years</h2>
+                        <p class="text-[10px] text-gray-400 font-bold tracking-widest mt-1 uppercase">System Configuration</p>
                     </div>
-                    <button id="close-year-modal" class="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                        <svg class="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    <button id="close-modal" class="p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
                 </div>
 
-                <div class="p-4 max-h-[60vh] overflow-y-auto space-y-3">
-                    ${years.map(y => this._renderYearRow(y)).join('')}
+                <div class="p-4 max-h-[60vh] overflow-y-auto bg-white">
+                    <div class="space-y-3">
+                        ${years.length > 0 
+                            ? years.map(y => this._renderYearRow(y, isAuthorized)).join('')
+                            : '<p class="text-center text-gray-400 py-10 text-sm italic">No academic years found.</p>'
+                        }
+                    </div>
                 </div>
 
                 <div class="p-6 bg-gray-50 border-t border-gray-100">
-                    <button id="add-year-btn" class="w-full py-4 bg-gray-900 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl active:scale-95 transition-all">
-                      + Create New Year
+                    <button id="add-year-btn" 
+                        data-clickable="${isAuthorized}"
+                        class="w-full py-4 rounded-2xl font-black text-sm tracking-widest uppercase transition-all flex items-center justify-center gap-3
+                        ${isAuthorized 
+                            ? 'bg-blue-600 text-white shadow-lg shadow-blue-200 hover:bg-blue-700 active:scale-95' 
+                            : 'bg-gray-200 text-gray-400 cursor-default'}">
+                        ${isAuthorized ? '' : this._getLockIcon()}
+                        Generate Next Year
                     </button>
                 </div>
             </div>
         `;
 
         document.body.appendChild(modalOverlay);
-        this._setupListeners();
+        this._setupListeners(isAuthorized);
     },
 
-    _renderYearRow(year) {
-        const activeClass = year.yearIsActive 
-            ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500/20" 
-            : "border-gray-100 bg-white hover:border-blue-200";
-
+    /**
+     * Renderizza la singola riga dell'anno
+     */
+    _renderYearRow(year, isAuthorized) {
+        const isActive = year.yearIsActive;
         return `
-            <div class="group flex items-center justify-between p-4 rounded-2xl border-2 ${activeClass} transition-all duration-200">
-                <div class="flex flex-col text-left">
-                    <span class="text-xl font-black ${year.yearIsActive ? 'text-blue-600' : 'text-gray-700'}">${year.year}</span>
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter italic">
-                        ${year.yearDescription || 'Standard Session'}
-                    </span>
+            <div class="flex items-center justify-between p-4 rounded-2xl border-2 transition-all 
+                ${isActive ? 'border-blue-600 bg-blue-50/50' : 'border-gray-100 bg-white shadow-sm'}">
+                <div class="text-left">
+                    <span class="block text-lg font-black ${isActive ? 'text-blue-900' : 'text-gray-700'}">${year.year}</span>
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">${year.yearDescription || 'Academic Session'}</span>
                 </div>
                 
-                ${year.yearIsActive 
-                    ? `<div class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 text-white rounded-full">
-                         <span class="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
-                         <span class="text-[9px] font-black uppercase tracking-wider">Active</span>
-                       </div>`
-                    : `<button data-id="${year.id}" data-val="${year.year}" 
-                               class="activate-btn px-4 py-2 bg-white border border-gray-200 text-gray-600 text-[10px] font-black rounded-xl uppercase tracking-widest hover:bg-blue-600 hover:border-blue-600 hover:text-white transition-all shadow-sm">
-                         Activate
-                       </button>`
+                ${isActive 
+                    ? `<span class="px-3 py-1 bg-blue-600 text-white text-[10px] font-black rounded-full uppercase tracking-widest">Active</span>`
+                    : `<button class="activate-btn px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2
+                        ${isAuthorized 
+                            ? 'bg-white border-2 border-gray-200 text-gray-500 hover:border-blue-600 hover:text-blue-600 active:scale-95' 
+                            : 'bg-gray-100 text-gray-300 cursor-default'}"
+                        data-id="${year.id}" 
+                        data-year="${year.year}"
+                        data-clickable="${isAuthorized}">
+                        ${isAuthorized ? '' : this._getLockIcon(12)}
+                        Activate
+                      </button>`
                 }
             </div>
         `;
     },
 
-    _setupListeners() {
-        // 1. Chiusura modale
-        document.getElementById('close-year-modal').onclick = () => this._close();
-        
-        // 2. Listener per attivazione anno (esistente)
+    /**
+     * Icona lucchetto per azioni disabilitate
+     */
+    _getLockIcon(size = 16) {
+        return `<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+    },
+
+    /**
+     * Configura i listener degli eventi
+     */
+    _setupListeners(isAuthorized) {
+        // Chiusura
+        document.getElementById('close-modal').onclick = () => this._close();
+
+        // Bottone Genera Nuovo Anno
+        const addBtn = document.getElementById('add-year-btn');
+        if (addBtn) {
+            addBtn.onclick = () => this._handleAction(addBtn, () => this._handleCreateYear());
+        }
+
+        // Bottoni Attivazione
         document.querySelectorAll('.activate-btn').forEach(btn => {
-            btn.onclick = async () => {
-                const yearId = btn.dataset.id;
-                const yearVal = btn.dataset.val;
+            btn.onclick = () => this._handleAction(btn, () => this._handleActivateYear(btn.dataset.id, btn.dataset.year));
+        });
+    },
 
-                const confirmed = await ConfirmView.show({
-                    title: "Switch Academic Year",
-                    message: `You are about to set ${yearVal} as the active session. This will update the data context for all system Users.`,
-                    confirmText: "Switch Now",
-                    cancelText: "Keep Current",
-                    type: 'warning'
-                });
+    /**
+     * Gestore universale delle azioni con controllo permessi e feedback (Toast/Shake)
+     */
+    async _handleAction(element, actionCallback) {
+        if (element.dataset.clickable !== "true") {
+            element.classList.add('animate-shake');
+            setTimeout(() => element.classList.remove('animate-shake'), 400);
+            ToastView.show("Read-only access: Permissions required to modify", "warning");
+            return;
+        }
+        await actionCallback();
+    },
 
-                if (confirmed) {
-                    try {
-                        const result = await ConfigService.activateYear(yearId);
-                        if (result.success) {
-                            this._close();
-                            //FeedbackView.show('success', `Academic year ${yearVal} is now active.`, "System Updated");
-                            
-                            ToastView.show(`Academic year ${yearVal} is now active.`, 'success', 5000);
-                            DashboardController.init();
-                        } else {
-                            FeedbackView.show('error', result.message, "Update Failed");
-                        }
-                    } catch (error) {
-                        FeedbackView.show('error', "Server communication error.", "System Error");
-                    }
-                }
-            };
+    /**
+     * Logica di creazione nuovo anno
+     */
+    async _handleCreateYear() {
+        const confirmed = await ConfirmView.show({
+            title: "Generate New Year",
+            message: "The system will automatically create the next academic session based on the last one. Proceed?",
+            confirmText: "Generate",
+            type: 'warning'
         });
 
-        // 3. Listener per "Create New Year" (CORRETTO)
-        // Usiamo document.getElementById perché modalOverlay non è visibile qui
-        const addBtn = document.getElementById('add-year-btn'); 
-        
-        if (addBtn) { // Controllo di sicurezza
-            addBtn.onclick = async () => {
-                const confirmed = await ConfirmView.show({
-                    title: "Create New Year",
-                    message: "The system will automatically generate the next academic session. Do you want to proceed?",
-                    confirmText: "Generate Year",
-                    type: 'warning'
-                });
-
-                if (confirmed) {
-                    try {
-                        const result = await ConfigService.createNextYear();
-                        
-                        if (result) {
-                            FeedbackView.show('success', `Next academic year created successfully.`, "Year Generated");
-                            
-                            // Chiudiamo e riapriamo per aggiornare la lista
-                            this._close();
-                            // Un piccolo delay per permettere al modale precedente di sparire dal DOM
-                            setTimeout(() => this.show(), 100); 
-                        }
-                    } catch (error) {
-                        FeedbackView.show('error', "Could not generate the next year.", "Operation Failed");
-                    }
+        if (confirmed) {
+            try {
+                const result = await ConfigService.createNextYear();
+                if (result) {
+                    //FeedbackView.show('success', `Year ${result.year} generated successfully.`, "Success");
+                    ToastView.show(`Year ${result.year} generated successfully.`, 'success', 5000);
+                    this._refresh();
                 }
-            }; 
+            } catch (error) {
+                FeedbackView.show('error', "Could not generate the next year.", "Operation Failed");
+            }
         }
     },
 
+    /**
+     * Logica di attivazione anno
+     */
+    async _handleActivateYear(id, yearLabel) {
+        const confirmed = await ConfirmView.show({
+            title: `Activate ${yearLabel}?`,
+            message: "This will set the selected year as the active session for system Users.",
+            confirmText: "Activate Now",
+            type: 'warning'
+        });
+
+        if (confirmed) {
+            try {
+                const result = await ConfigService.activateYear(id);
+                if (result.success) {
+                    //FeedbackView.show('success', `Academic year ${yearLabel} is now active.`, "System Updated");
+                    ToastView.show(`Academic year ${yearLabel} is now active.`, 'success', 5000);
+                    DashboardController.init(); // Aggiorniamo l'intero dashboard per riflettere il cambio di anno (es. nei dati delle card)
+                    this._close(); // Chiudiamo il modale dopo l'attivazione
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (error) {
+                FeedbackView.show('error', "Failed to update the active year.", "Update Error");
+                console.error('Activation Error:', error);
+            }
+        }
+    },
+
+    /**
+     * Aggiorna il modale ricaricando i dati ma mantenendo i permessi correnti
+     */
+    _refresh() {
+        this._close();
+        setTimeout(() => this.show(this._currentPerms.hasAllAccess, this._currentPerms.canEditYear), 100);
+    },
+
+    /**
+     * Chiude il modale rimuovendolo dal DOM
+     */
     _close() {
         const modal = document.getElementById('year-modal-overlay');
         if (modal) modal.remove();

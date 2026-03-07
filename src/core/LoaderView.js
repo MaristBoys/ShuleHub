@@ -18,24 +18,6 @@ export const LoaderView = {
         const overlay = document.createElement('div');
         overlay.id = this._id;
         overlay.className = "fixed inset-0 z-[9999] bg-black/30 backdrop-blur-[2px] flex items-center justify-center transition-opacity duration-300";
-        
-        // HTML del rettangolo centrale (Modale)
-/*        overlay.innerHTML = `
-            <div class="bg-white p-6 rounded-2xl shadow-2xl border border-blue-50 w-72 text-center transform scale-100 transition-transform">
-                <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-blue-900 border-t-transparent mb-4"></div>
-                <h2 id="loader-message" class="text-blue-900 font-semibold text-sm mb-2">${message}</h2>
-                <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
-                    <div id="loader-bar" class="bg-blue-600 h-full w-1/3 animate-[loading_2s_infinite_linear]"></div>
-                </div>
-            </div>
-            <style>
-                @keyframes loading {
-                    0% { transform: translateX(-100%); }
-                    100% { transform: translateX(300%); }
-                }
-            </style>
-        `;
-*/
 
         overlay.innerHTML = `
             <div class="bg-white p-6 rounded-2xl shadow-2xl border border-blue-50 w-72 text-center transform transition-all scale-100">
@@ -50,8 +32,6 @@ export const LoaderView = {
                 </div>
             </div>
         `;
-
-
 
         document.body.appendChild(overlay);
     },
@@ -110,7 +90,5 @@ export const LoaderView = {
             this._timer = null;
         }
     },
-
-
 
 };

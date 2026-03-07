@@ -1,5 +1,6 @@
 // src/features/dashboard/components/ConfigCardView.js
 import { YearModal } from '../../school-config/modals/YearModal.js';
+import { SubjectModal } from '../../school-config/modals/SubjectModal.js';
 import { ToastView } from '../../../core/ToastView.js';
 
 export const ConfigCardView = {
@@ -117,8 +118,9 @@ export const ConfigCardView = {
                 }
 
                 if (type === 'subjects') {
-                    // Implementazione futura per Subjects
-                    ToastView.show("Subjects configuration coming soon", "info");
+                    // Passiamo i flag di autorizzazione al nuovo modale Subjects
+                    const canEditSubjects = userPermissions.has('CONFIG_EDIT_SUBJECTS');
+                    SubjectModal.show(hasAllAccess, canEditSubjects);
                 }
             };
         });

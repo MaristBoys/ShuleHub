@@ -2,6 +2,7 @@
 import { YearModal } from '../../school-config/modals/YearModal.js';
 import { SubjectModal } from '../../school-config/modals/SubjectModal.js';
 import { ToastView } from '../../../core/ToastView.js';
+import { ActiveRoomsModal } from '../../school-config/modals/ActiveRoomsModal.js';
 
 export const ConfigCardView = {
     /**
@@ -16,7 +17,7 @@ export const ConfigCardView = {
         card.className = "bg-white/90 backdrop-blur-sm py-4 px-5 rounded-2xl shadow-lg border border-white/50 hover:shadow-2xl transition-all flex flex-col h-full overflow-hidden animate-in fade-in duration-500";
         
         const schoolData = stats?.school || {};
-        
+        console.log("Rendering ConfigCardView with data:", schoolData, "User Permissions:", userPermissions);
         // Mappatura permessi micro per riga
         // indico i permessi che servono per vedere o editare ogni singola riga, così da gestire i lucchetti in modo granulare (Livello 2)
         const rows = [
@@ -50,7 +51,7 @@ export const ConfigCardView = {
         `;
 
         // Passiamo i permessi ai listener per gestire i click
-        this._setupListeners(card, userPermissions, hasAllAccess);
+        this._setupListeners(card, userPermissions, hasAllAccess,schoolData.yearId);
         return card;
     },
 
@@ -93,7 +94,7 @@ export const ConfigCardView = {
     },
 
     // Configura i listener per le righe cliccabili, aprendo i modali corrispondenti (Livello 3)
-    _setupListeners(card, userPermissions, hasAllAccess) {
+    _setupListeners(card, userPermissions, hasAllAccess, currentYear) {
         card.querySelectorAll('[data-type]').forEach(row => {
             row.onclick = (e) => {
                 e.stopPropagation();
@@ -114,10 +115,19 @@ export const ConfigCardView = {
                     YearModal.show(hasAllAccess, canEditYear);
                 }
                 
+               
                 if (type === 'rooms') {
-                    // Implementazione futura per Rooms
-                    ToastView.show("Rooms management coming soon", "info");
+                    //const canViewRooms = userPermissions.has('CONFIG_VIEW_ROOMS') || hasAllView;
+                    const canEditRooms = userPermissions.has('CONFIG_EDIT_ROOMS') || hasAllAccess;
+                    ActiveRoomsModal.show(currentYear, canEditRooms);
+                    /*
+                    if (canViewRooms || canEditRooms) {
+                        // Passiamo l'ID dell'anno corrente che dovresti avere nello stato della card
+                        ActiveRoomsModal.show(currentYear, canEditRooms);
+                    }*/
                 }
+
+
 
                 if (type === 'subjects') {
                     // Passiamo i flag di autorizzazione al nuovo modale Subjects

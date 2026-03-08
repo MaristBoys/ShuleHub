@@ -56,6 +56,44 @@ export const ConfigService = {
     },
 
     /* ***************************************************************************************************
+    ROOMS  Aggiunte a ConfigService.js per la gestione delle stanze (simile a years)
+    **************************************************************************************************** */
+    /**
+     * Recupera la matrice delle stanze (Forms/Streams) arricchita con i dati dashboard
+     * @param {number} yearId - ID dell'anno accademico
+     * @returns {Promise<Object>} Contiene streams[], rows[] e i nuovi dati DTO per ogni cella
+     */
+    async getRoomMatrix(yearId) {
+        try {
+            const response = await api.fetchWithLoader(
+                `/api/v1/school-config/rooms/matrix/${yearId}`,
+                { method: 'GET' },
+                'Loading school layout and stats...' // Messaggio aggiornato per riflettere il caricamento stats
+            );
+            
+            if (!response.ok) return { success: false, data: { streams: [], rows: [] } };
+            
+            const result = await response.json();
+            
+            // Il result.data conterrà ora gli oggetti YearRoomSummaryDTO completi:
+            // { yearRoomId, roomName, isAssigned, studentCount, classTeacherName, staffingRatio, staffingPercentage }
+            return result;
+        } catch (error) {
+            console.error('Error fetching room matrix:', error);
+            return { success: false, message: 'Connection error', data: { streams: [], rows: [] } };
+        }
+    },
+
+    /**
+     * [Placeholder per lo Step 3] 
+     * Metodo per aggiungere un nuovo stream (sezione) dinamicamente
+     */
+    async addStream(yearId, streamNumber) {
+        // Implementeremo questo quando gestiremo la logica di creazione della nuova colonna
+    },
+
+
+    /* ***************************************************************************************************
     SUBJECTS  Aggiunte a ConfigService.js per la gestione delle materie (simile a years)
     **************************************************************************************************** */
    

@@ -19,10 +19,10 @@ export const ActiveRoomsModal = {
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'rooms-modal-overlay';
        
-        modalOverlay.className = "fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-blue-900/40 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-200";
+        modalOverlay.className = "fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-blue-900/40 backdrop-blur-sm p-0 sm:p-4 animate-in fade-in duration-200";
        
         modalOverlay.innerHTML = `
-            <div class="bg-white w-full max-w-5xl h-[88vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom sm:zoom-in-95 duration-300">
+            <div class="bg-white w-full max-w-5xl h-[85vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom sm:zoom-in-95 duration-300">
                 <div class="px-8 py-2 border-b border-gray-100 flex justify-between items-center bg-white">
                     <div>
                         <h2 class="text-2xl font-black text-blue-900 uppercase tracking-tight">Active Rooms ${this._currentYearName}</h2>

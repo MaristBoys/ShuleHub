@@ -35,9 +35,9 @@ export const ActiveRoomsModal = {
                     <table class="w-full border-separate border-spacing-4">
                         <thead>
                             <tr>
-                                <th class="w-24 px-4 py-2 text-left text-xs font-bold text-slate-400 uppercase tracking-widest"></th>
+                                <th class="w-24 px-4 py-2 text-left text-xs font-bold text-slate-600 uppercase tracking-widest"></th>
                                 ${streams.map(s => `
-                                    <th class="px-4 py-2 text-center text-xs font-bold text-slate-400 uppercase tracking-widest">Stream ${s}</th>
+                                    <th class="px-4 py-2 text-center text-xs font-bold text-slate-600 uppercase tracking-widest">Stream ${s}</th>
                                 `).join('')}
                                 <th class="w-16"></th> </tr>
                         </thead>
@@ -45,7 +45,7 @@ export const ActiveRoomsModal = {
                             ${rows.map(row => `
                                 <tr>
                                     <td class="align-middle pr-4">
-                                        <span class="text-xs font-bold text-slate-400 uppercase tracking-widest whitespace-nowrap">
+                                        <span class="text-xs font-bold text-slate-600 uppercase tracking-widest whitespace-nowrap">
                                             ${row.formName}
                                         </span>
                                     </td>
@@ -100,7 +100,7 @@ export const ActiveRoomsModal = {
             <button data-id="${room.yearRoomId}" class="room-cell group w-full bg-white border-2 border-transparent hover:border-blue-500 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col gap-3 text-left">
                 
                 <div class="flex justify-between items-start">
-                    <span class="text-lg font-black text-slate-800">${room.roomName}</span>
+                    <span class="text-lg font-black text-blue-900">${room.roomName}</span>
                     <span class="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         ${room.studentCount || 0}

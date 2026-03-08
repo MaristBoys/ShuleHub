@@ -5,8 +5,9 @@ import { ToastView } from '../../../core/ToastView.js';
 export const ActiveRoomsModal = {
     _currentYearId: null,
 
-    async show(yearId, isAuthorized = false) {
+    async show(yearId, isAuthorized = false, yearName = '') {
         this._currentYearId = yearId;
+        this._currentYearName = yearName;
         const result = await ConfigService.getRoomMatrix(yearId);
         
         if (!result.success) {
@@ -17,13 +18,14 @@ export const ActiveRoomsModal = {
 
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'rooms-modal-overlay';
-        modalOverlay.className = "fixed inset-0 z-[100] flex items-center justify-center bg-blue-900/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
-        
+       
+        modalOverlay.className = "fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-blue-900/40 backdrop-blur-md p-0 sm:p-4 animate-in fade-in duration-200";
+       
         modalOverlay.innerHTML = `
-            <div class="bg-white w-full max-w-6xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-                <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white">
+            <div class="bg-white w-full max-w-5xl h-[88vh] sm:h-auto sm:max-h-[90vh] rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col animate-in slide-in-from-bottom sm:zoom-in-95 duration-300">
+                <div class="px-8 py-2 border-b border-gray-100 flex justify-between items-center bg-white">
                     <div>
-                        <h2 class="text-2xl font-black text-blue-900 uppercase tracking-tight">Active Rooms Dashboard</h2>
+                        <h2 class="text-2xl font-black text-blue-900 uppercase tracking-tight">Active Rooms ${this._currentYearName}</h2>
                         <p class="text-slate-500 text-sm font-medium">Manage class assignments</p>
                     </div>
                     <button id="close-rooms-modal" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
@@ -31,33 +33,31 @@ export const ActiveRoomsModal = {
                     </button>
                 </div>
 
-                <div class="flex-1 overflow-auto p-8 bg-slate-50/50">
+                <div class="flex-1 overflow-auto px-4 pb-8 bg-slate-200/60">
                     <table class="w-full border-separate border-spacing-4">
                         <thead>
                             <tr>
-                                <th class="w-24 px-4 py-2 text-left text-xs font-bold text-slate-600 uppercase tracking-widest"></th>
-                                ${streams.map(s => `
-                                    <th class="px-4 py-2 text-center text-xs font-bold text-slate-600 uppercase tracking-widest">Stream ${s}</th>
-                                `).join('')}
-                                <th class="w-16"></th> </tr>
+                               
+                            </tr>
+    
                         </thead>
                         <tbody>
                             ${rows.map(row => `
                                 <tr>
-                                    <td class="align-middle pr-4">
-                                        <span class="text-xs font-bold text-slate-600 uppercase tracking-widest whitespace-nowrap">
-                                            ${row.formName}
-                                        </span>
-                                    </td>
                                     ${streams.map(sNum => {
                                         // Trasformiamo sNum in stringa per matchare le chiavi del JSON ("1", "2", etc.)
                                         const room = row.cells[String(sNum)]; 
                                         // Passiamo row.formId se disponibile, altrimenti usiamo row.formNum come riferimento
-                                        return `<td>${this._renderCell(room, row.formId || row.formNum, sNum, isAuthorized)}</td>`;
+                                        // Costruiamo il nome ipotetico (es: "1" + "1" = "11")
+                                        const suggestedName = `${row.formNum}${sNum}`; 
+                                        return `<td>${this._renderCell(room, row.formId || row.formNum, sNum, isAuthorized, suggestedName)}</td>`;
                                     }).join('')}
-                                    <td class="opacity-0 hover:opacity-100 transition-opacity">
-                                        <button class="w-8 h-8 rounded-full border-2 border-dashed border-slate-300 text-slate-300 flex items-center justify-center">
-                                            <small>+</small>
+                                    <td class="pl-2">
+                                        <button class="w-10 h-10 rounded-full border-2 border-dashed border-slate-300 text-slate-400 flex items-center justify-center hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 group shadow-sm bg-white/50">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="group-hover:rotate-90 transition-transform duration-300">
+                                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                                            </svg>
                                         </button>
                                     </td>
                                 </tr>
@@ -72,15 +72,22 @@ export const ActiveRoomsModal = {
         this._setupListeners(isAuthorized);
     },
 
+
+        async _getYearName(yearId) {
+        const years = await ConfigService.getYears();
+        const currentYear = years.find(y => y.id === parseInt(yearId));
+        return currentYear ? currentYear.yearName : '';
+    },
+
     /**
      * Renderizza il contenuto della cella (Stanza attiva o Slot vuoto)
      */
-    _renderCell(room, formId, streamNum, isAuthorized) {
-        // Verifichiamo 'assigned' come appare nel tuo JSON
+        _renderCell(room, formId, streamNum, isAuthorized, suggestedName) {
         if (room && room.assigned === true) {
             return this._renderActiveRoom(room);
         } else {
-            return this._renderEmptySlot(formId, streamNum, isAuthorized);
+            // Passiamo il nome suggerito allo slot vuoto
+            return this._renderEmptySlot(formId, streamNum, isAuthorized, suggestedName);
         }
     },
 
@@ -129,17 +136,20 @@ export const ActiveRoomsModal = {
     /**
      * Template per uno slot vuoto (Ghost Slot)
      */
-    _renderEmptySlot(formId, streamNum, isAuthorized) {
+     _renderEmptySlot(formId, streamNum, isAuthorized, suggestedName) {
         return `
             <button data-form="${formId}" data-stream="${streamNum}" 
-                class="add-room-cell w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-300 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50/50 transition-all group">
+                class="add-room-cell w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50/50 transition-all group">
                 <div class="p-2 rounded-full border-2 border-slate-100 group-hover:border-blue-200 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </div>
-                <span class="text-[10px] font-black uppercase tracking-widest">Assign Room</span>
+                <span class="text-[10px] font-black uppercase tracking-widest text-center">
+                    Assign<br>Room ${suggestedName}
+                </span>
             </button>
         `;
     },
+
 
     _setupListeners(isAuthorized) {
         document.getElementById('close-rooms-modal').onclick = () => {

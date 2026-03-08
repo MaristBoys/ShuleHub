@@ -51,7 +51,7 @@ export const ConfigCardView = {
         `;
 
         // Passiamo i permessi ai listener per gestire i click
-        this._setupListeners(card, userPermissions, hasAllAccess,schoolData.yearId);
+        this._setupListeners(card, userPermissions, hasAllAccess,schoolData.yearId,schoolData.currentYear);
         return card;
     },
 
@@ -94,7 +94,7 @@ export const ConfigCardView = {
     },
 
     // Configura i listener per le righe cliccabili, aprendo i modali corrispondenti (Livello 3)
-    _setupListeners(card, userPermissions, hasAllAccess, currentYear) {
+    _setupListeners(card, userPermissions, hasAllAccess, currentYear, currentYearName) {
         card.querySelectorAll('[data-type]').forEach(row => {
             row.onclick = (e) => {
                 e.stopPropagation();
@@ -119,7 +119,7 @@ export const ConfigCardView = {
                 if (type === 'rooms') {
                     //const canViewRooms = userPermissions.has('CONFIG_VIEW_ROOMS') || hasAllView;
                     const canEditRooms = userPermissions.has('CONFIG_EDIT_ROOMS') || hasAllAccess;
-                    ActiveRoomsModal.show(currentYear, canEditRooms);
+                    ActiveRoomsModal.show(currentYear, canEditRooms, currentYearName);
                     /*
                     if (canViewRooms || canEditRooms) {
                         // Passiamo l'ID dell'anno corrente che dovresti avere nello stato della card

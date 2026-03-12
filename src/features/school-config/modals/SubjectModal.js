@@ -1,9 +1,9 @@
 // src/features/school-config/modals/SubjectModal.js
 import { DashboardController } from '../../dashboard/DashboardController.js';
-import { ConfigService } from '../services/ConfigService.js';
 import { FeedbackView } from '../../../core/FeedbackView.js';
 import { ToastView } from '../../../core/ToastView.js';
 import { SubjectDetailModal } from './SubjectDetailModal.js'; // Importante: importa il dettaglio
+import { SubjectService } from '../../subject/service/SubjectService.js';
 
 export const SubjectModal = {
     _currentPerms: { hasAllAccess: false, canEditSubjects: false },
@@ -15,7 +15,7 @@ export const SubjectModal = {
         // Rimuoviamo eventuali residui se il modale fosse già aperto
         this._close();
 
-        const subjects = await ConfigService.getSubjects();
+        const subjects = await SubjectService.getAll(); // Cambiato da ConfigService a SubjectService per coerenza con il nuovo endpoint
         
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'subject-modal-overlay';
@@ -139,7 +139,7 @@ export const SubjectModal = {
                 const isChecked = toggle.checked; // Stato dopo il click
 
                 try {
-                    const result = await ConfigService.toggleSubjectStatus(id);
+                    const result = await SubjectService.toggleStatus(id); // Cambiato da ConfigService a SubjectService per coerenza con il nuovo endpoint          
                     
                     if (result.success) {
                         ToastView.show(`${name} is now ${isChecked ? 'Active' : 'Inactive'}`, 'success');
@@ -171,7 +171,7 @@ export const SubjectModal = {
         const isAuthorized = this._currentPerms.hasAllAccess || this._currentPerms.canEditSubjects;
 
         if (subjectId) {
-            const subjects = await ConfigService.getSubjects();
+            const subjects = await SubjectService.getAll(); // Cambiato da ConfigService a SubjectService per coerenza con il nuovo endpoint
             subject = subjects.find(s => s.id == subjectId);
         }
 
@@ -184,7 +184,8 @@ export const SubjectModal = {
     // Metodo per rinfrescare la lista senza chiudere il modale intero
     async _refreshList() {
         const isAuthorized = this._currentPerms.hasAllAccess || this._currentPerms.canEditSubjects;
-        const subjects = await ConfigService.getSubjects();
+        const subjects = await SubjectService.getAll();
+
         const container = document.querySelector('#subjects-list-container .grid');
         
         if (container) {

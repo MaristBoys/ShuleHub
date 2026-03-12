@@ -18,7 +18,7 @@ export const api = {
     async wakeUp() {
         try {
             // Aggiungiamo le credenziali anche qui per il controllo sessione automatico
-            const response = await fetch(`${BACKEND_BASE_URL}/api/auth/wakeup`, {
+            const response = await fetch(`${BACKEND_BASE_URL}/api/v1/auth/wakeup`, {
                 credentials: 'include'
             });
             

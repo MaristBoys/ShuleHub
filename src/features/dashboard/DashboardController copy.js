@@ -1,7 +1,7 @@
 // src/features/dashboard/DashboardController.js
 import { UserModel } from '../auth/UserModel.js';
 import { DashboardView } from './DashboardView.js';
-import { DashboardService } from './DashboardService.js';
+import { api } from '../../core/api.js';
 
 export class DashboardController {
     
@@ -23,30 +23,45 @@ export class DashboardController {
      * Inizializza la dashboard gestendo l'autorizzazione tramite permessi
      */
     static async init() {
-        // CORRETTO: Metodo fedele a UserModel.js
         const user = UserModel.getCurrentUser();
-        
         if (!user) {
-            window.location.href = 'index.html';
+            window.location.hash = '#login';
             return;
         }
 
-        // --- LIVELLO 1: Gestione Autorizzazioni  ---
         const userPermissions = new Set(user.permissions || []);
-        const hasAllAccess = userPermissions.has('ALL_ACCESS');
-        const hasAllView = userPermissions.has('ALL_VIEW') || hasAllAccess;
-        const hasDashboardViewAll = userPermissions.has('DASHBOARD_VIEW_ALL') || hasAllView;
-
-        const allFeatures = this.getFeaturesConfig();
-        const filteredFeatures = allFeatures.filter(f => 
-            hasDashboardViewAll || userPermissions.has(f.perm)
+        
+        // --- DEFINIZIONE PASSEPARTOUT ---
+        const hasAllAccess = userPermissions.has('ALL_ACCESS'); // Il potere assoluto (Sblocca TUTTO nel sistema)
+        const hasAllView = userPermissions.has('ALL_VIEW'); // Vede tutte le card, ma non sblocca i lucchetti interni (EDIT) nelle card
+        const hasViewAllDashboard = userPermissions.has('DASHBOARD_VIEW_ALL'); // Vede tutte le card della dashboard, ma non sblocca i lucchetti (EDIT) interni delle card
+        
+        // --- LIVELLO 1: Visibilità Card ---
+        // Una card è visibile se l'utente ha un potere superiore 
+        // o il permesso specifico della card
+        const filteredFeatures = this.getFeaturesConfig().filter(f => 
+            hasAllAccess || // Sblocca tutto
+            hasAllView || // Vede tutto nell'app
+            hasViewAllDashboard || // Vede tutte le card della dashboard
+            userPermissions.has(f.perm) // Permesso specifico della card
+            
         );
 
         try {
-            // Chiamata al Service invece che api.fetch diretto
-            const result = await DashboardService.getDashboardSummary();
+            const response = await api.fetchWithLoader(
+                '/api/v1/dashboard/summary', 
+                { method: 'GET' },
+                'Loading Dashboard...'
+            );
+
+            if (!response.ok) throw new Error('Failed to fetch dashboard data');
+            const result = await response.json();
 
             if (result.success) {
+                // --- LIVELLO 2: Rendering ---
+                // Passiamo hasAllAccess separatamente perché serve a sbloccare i lucchetti (EDIT)
+                // nelle card, indipendentemente dal fatto che l'utente veda la card per DASHBOARD_VIEW_ALL
+                // passiamo anche hasAllView per sbloccare la visualizzazione completa e non far apparire i lucchetti di accesso negato   
                 await DashboardView.render(
                     user, 
                     filteredFeatures, 
@@ -61,7 +76,6 @@ export class DashboardController {
 
         } catch (error) {
             console.error('Dashboard Init Error:', error);
-            // In caso di errore, rendering con dati null come nell'originale
             await DashboardView.render(user, filteredFeatures, null, userPermissions, hasAllAccess, hasAllView);
         }
     }

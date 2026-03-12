@@ -1,6 +1,6 @@
 // src/features/school-config/modals/YearModal.js
 import { DashboardController } from '../../dashboard/DashboardController.js';
-import { ConfigService } from '../services/ConfigService.js';
+import { SchoolStructureService } from '../../school-structure/service/SchoolStructureService.js';
 import { FeedbackView } from '../../../core/FeedbackView.js';
 import { ConfirmView } from '../../../core/ConfirmView.js';
 import { ToastView } from '../../../core/ToastView.js';
@@ -21,7 +21,7 @@ export const YearModal = {
         // Un utente è autorizzato se ha l'accesso totale o il permesso specifico di editing
         const isAuthorized = hasAllAccess || canEditYear;
         
-        const years = await ConfigService.getYears();
+        const years = await SchoolStructureService.getYears();
         
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'year-modal-overlay';
@@ -148,7 +148,7 @@ export const YearModal = {
 
         if (confirmed) {
             try {
-                const result = await ConfigService.createNextYear();
+                const result = await SchoolStructureService.createNextYear();
                 if (result) {
                     //FeedbackView.show('success', `Year ${result.year} generated successfully.`, "Success");
                     ToastView.show(`Year ${result.year} generated successfully.`, 'success', 5000);
@@ -173,7 +173,7 @@ export const YearModal = {
 
         if (confirmed) {
             try {
-                const result = await ConfigService.activateYear(id);
+                const result = await SchoolStructureService.activateYear(id);
                 if (result.success) {
                     //FeedbackView.show('success', `Academic year ${yearLabel} is now active.`, "System Updated");
                     ToastView.show(`Academic year ${yearLabel} is now active.`, 'success', 5000);

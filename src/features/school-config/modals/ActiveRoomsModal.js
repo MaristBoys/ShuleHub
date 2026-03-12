@@ -1,6 +1,7 @@
 // src/features/school-config/modals/ActiveRoomsModal.js
-import { ConfigService } from '../services/ConfigService.js';
 import { ToastView } from '../../../core/ToastView.js';
+import { SchoolStructureService } from '../../school-structure/service/SchoolStructureService.js';
+import { SchoolConfigService } from '../services/SchoolConfigService.js';
 
 export const ActiveRoomsModal = {
     _currentYearId: null,
@@ -8,8 +9,10 @@ export const ActiveRoomsModal = {
     async show(yearId, isAuthorized = false, yearName = '') {
         this._currentYearId = yearId;
         this._currentYearName = yearName;
-        const result = await ConfigService.getRoomMatrix(yearId);
+        const result = await SchoolConfigService.getRoomMatrix(yearId);
         
+        console.log(result);
+
         if (!result.success) {
             return ToastView.show("Error loading room matrix", "error");
         }
@@ -74,7 +77,7 @@ export const ActiveRoomsModal = {
 
 
         async _getYearName(yearId) {
-        const years = await ConfigService.getYears();
+        const years = await SchoolStructureService.getYears(); // Cambiato da ConfigService a SchoolStructureService per coerenza con il nuovo endpoint
         const currentYear = years.find(y => y.id === parseInt(yearId));
         return currentYear ? currentYear.yearName : '';
     },

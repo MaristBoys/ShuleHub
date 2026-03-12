@@ -1,7 +1,7 @@
 // src/features/school-config/modals/SubjectDetailModal.js
-import { ConfigService } from '../services/ConfigService.js';
 import { FeedbackView } from '../../../core/FeedbackView.js';
 import { ToastView } from '../../../core/ToastView.js';
+import { SubjectService } from '../../subject/service/SubjectService.js';
 
 export const SubjectDetailModal = {
     /**
@@ -117,9 +117,9 @@ export const SubjectDetailModal = {
 
             let result;
             if (data.id) {
-                result = await ConfigService.updateSubject(data.id, data);
+                result = await SubjectService.update(data.id, data); // Cambiato da ConfigService a SubjectService per coerenza con il nuovo endpoint
             } else {
-                result = await ConfigService.createSubject(data);
+                result = await SubjectService.create(data); // Cambiato da ConfigService a SubjectService per coerenza con il nuovo endpoint
             }
 
             if (result.success) {

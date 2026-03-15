@@ -3,189 +3,171 @@ import { ToastView } from '../../../core/ToastView.js';
 import { SchoolConfigService } from '../services/SchoolConfigService.js';
 
 export const RoomDetailModal = {
-    _currentTab: 'scales', // 'scales' | 'staff' | 'students'
+    _currentTab: 'scales',
     _data: null,
     _isAuthorized: false,
+    _yearRoomId: null,
+    _creationParams: null,
 
-    async show(yearRoomId, isAuthorized = false) {
+    async show(yearRoomId, isAuthorized = false, previewParams = null) {
         this._isAuthorized = isAuthorized;
-        this._currentTab = 'scales'; 
+        this._currentTab = 'scales';
+        this._yearRoomId = yearRoomId;
+        this._creationParams = previewParams;
 
-        // 1. (Opzionale) Feedback immediato di caricamento
-        // ToastView.show("Loading details...", "info");
+        let result;
+        if (yearRoomId) {
+            result = await SchoolConfigService.getYearRoomDetails(yearRoomId);
+        } else if (previewParams) {
+            result = await SchoolConfigService.getRoomPreview(previewParams.yearId, previewParams.roomNum);
+        }
 
-        try {
-            const result = await SchoolConfigService.getYearRoomDetails(yearRoomId);
-            
-            // 2. Controllo risposta Service
-            if (!result || !result.success) {
-                console.error("API Error:", result);
-                return ToastView.show(result?.message || "Failed to load room details", "error");
-            }
-
-            // 3. Assegnazione dati
+        if (result && result.success) {
             this._data = result.data;
-
-            // 4. Rendering con protezione dai crash
-            try {
-                this._render();
-            } catch (renderError) {
-                console.error("Render Error (Check your template variables):", renderError);
-                ToastView.show("UI Rendering Error", "error");
-            }
-
-        } catch (networkError) {
-            // 5. Gestione errore di rete o crash del Service
-            console.error("Network/Service Error:", networkError);
-            ToastView.show("Connection error with server", "error");
+            console.log(result.data)
+            this._render();
+        } else {
+            ToastView.show("Impossibile caricare i dati", "error");
         }
     },
 
     _render() {
+        const isNew = !this._yearRoomId;
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'room-detail-overlay';
-        modalOverlay.className = "fixed inset-0 z-[110] flex items-center justify-center bg-blue-950/40 backdrop-blur-md p-4 animate-in fade-in duration-200";
+        modalOverlay.className = 'fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[9999] flex items-center justify-center p-4';
 
         modalOverlay.innerHTML = `
-            <div class="bg-white w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col animate-in zoom-in-95 duration-300">
-                
-                <div class="px-8 pt-8 pb-6 bg-gradient-to-br from-white to-slate-50 relative">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-200">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                            </div>
+            <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden animate-in fade-in zoom-in duration-200">
+                <div class="bg-slate-900 p-6 text-white relative">
+                    <div class="flex justify-between items-center">
+                        <div class="flex gap-6 items-center">
                             <div>
-                                <h3 class="text-2xl font-black text-slate-800 leading-tight">${this._data.roomName}</h3>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs font-bold text-blue-600 uppercase tracking-wider">${this._data.formName}</span>
-                                    <span class="text-slate-300">•</span>
-                                    <span class="text-xs font-medium text-slate-500">${this._data.yearName}</span>
+                                <h2 class="text-2xl font-black tracking-tighter">${this._data.roomName}</h2>
+                                <p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">
+                                    ${this._data.formName} • ${this._data.yearName}
+                                </p>
+                            </div>
+                            
+                            <div class="h-10 w-px bg-slate-700"></div>
+
+                            <div class="flex gap-8">
+                                <div>
+                                    <p class="text-slate-500 text-[9px] uppercase font-black tracking-tighter mb-0.5 text-center">Students</p>
+                                    <p class="text-sm font-bold text-blue-400 text-center">${this._data.studentCount || 0}</p>
+                                </div>
+                                <div>
+                                    <p class="text-slate-500 text-[9px] uppercase font-black tracking-tighter mb-0.5">Class Teacher</p>
+                                    <p class="text-sm font-bold ${this._data.classTeacherName === 'Not Assigned' ? 'text-amber-500 italic' : 'text-slate-200'}">
+                                        ${this._data.classTeacherName || 'Not Assigned'}
+                                    </p>
                                 </div>
                             </div>
                         </div>
-                        <button id="close-detail-modal" class="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+
+                        <button id="close-detail-modal" class="p-2 hover:bg-white/10 rounded-full transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                         </button>
                     </div>
-
-                    <div class="flex gap-3 mb-2">
-                        <div class="px-3 py-1.5 bg-slate-100 rounded-full flex items-center gap-2">
-                            <svg class="text-slate-500" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                            <span class="text-[11px] font-bold text-slate-600 uppercase">${this._data.studentCount} Students</span>
-                        </div>
-                        <div class="px-3 py-1.5 bg-blue-50 rounded-full flex items-center gap-2">
-                            <svg class="text-blue-500" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                            <span class="text-[11px] font-bold text-blue-700 uppercase">CT: ${this._data.classTeacherName}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex p-1 bg-slate-100 rounded-2xl mt-6 w-fit">
-                        ${this._renderTabBtn('scales', 'Assessment')}
-                        ${this._renderTabBtn('staff', 'Staffing')}
-                        ${this._renderTabBtn('students', 'Enrollment')}
-                    </div>
                 </div>
 
-                <div id="tab-content" class="px-8 py-6 min-h-[350px] max-h-[500px] overflow-y-auto bg-white">
-                    ${this._renderCurrentTab()}
-                </div>
+                <div class="p-6">
+                    <div class="flex bg-slate-100 p-1 rounded-2xl mb-6">
+                        ${['scales', 'staff', 'students'].map(tab => {
+                            const isDisabled = isNew && tab !== 'scales';
+                            const isActive = this._currentTab === tab;
+                            return `
+                                <button data-tab="${tab}" ${isDisabled ? 'disabled' : ''}
+                                    class="tab-trigger flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200
+                                    ${isDisabled ? 'opacity-30 cursor-not-allowed' : ''}
+                                    ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}">
+                                    ${tab === 'staff' ? 'Staffing' : tab}
+                                </button>
+                            `;
+                        }).join('')}
+                    </div>
 
-                <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button id="cancel-detail" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Close</button>
-                    ${this._isAuthorized ? `<button id="save-room-config" class="px-8 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">Save Changes</button>` : ''}
+                    <div id="modal-tab-content" class="min-h-[350px] max-h-[500px] overflow-y-auto pr-2">
+                        ${this._getTabContent()}
+                    </div>
+
+                    <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
+                        <button id="cancel-detail" class="px-6 py-2.5 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:bg-slate-50 rounded-xl transition-all">
+                            Cancel
+                        </button>
+                        <button id="save-room-detail" 
+                            class="px-8 py-2.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200">
+                            ${isNew ? 'Activate Room' : 'Update Scales'}
+                        </button>
+                    </div>
                 </div>
             </div>
         `;
-
-        // Rimuovi vecchio se esiste
-        const old = document.getElementById('room-detail-overlay');
-        if (old) old.remove();
 
         document.body.appendChild(modalOverlay);
         this._setupListeners();
     },
 
-    _renderTabBtn(id, label) {
-        const isActive = this._currentTab === id;
-        return `
-            <button data-tab="${id}" class="tab-trigger px-6 py-2 rounded-xl text-xs font-black uppercase tracking-tighter transition-all duration-200 
-                ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}">
-                ${label}
-            </button>
-        `;
+    _getTabContent() {
+        if (this._currentTab === 'scales') return this._renderScales();
+        if (this._currentTab === 'staff') return this._renderStaff();
+        if (this._currentTab === 'students') return this._renderStudents();
     },
 
-    _renderCurrentTab() {
-        switch (this._currentTab) {
-            case 'scales': return this._renderScalesTab();
-            case 'staff': return this._renderStaffTab();
-            case 'students': return this._renderStudentsTab();
-            default: return '';
-        }
-    },
+    _renderScales() {
+        const scales = [
+            { id: 'grade', label: 'Grade Scale', value: this._data.currentScales.gradeScaleId, key: 'GRADE' },
+            { id: 'division', label: 'Division Scale', value: this._data.currentScales.divisionScaleId, key: 'DIVISION' },
+            { id: 'conduct-alpha', label: 'Conduct (Alpha)', value: this._data.currentScales.conductAlphaScaleId, key: 'CONDUCT_ALPHA' },
+            { id: 'conduct-text', label: 'Conduct (Text)', value: this._data.currentScales.conductTextScaleId, key: 'CONDUCT_TEXT' }
+        ];
 
-    _renderScalesTab() {
         return `
-            <div class="space-y-6 animate-in slide-in-from-bottom-2 duration-300">
-                <p class="text-sm text-slate-500 mb-4 font-medium">Configure how grades and behavior are calculated for this room.</p>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    ${this._renderScaleSelect("Grade Scale", "GRADE", this._data.currentScales.gradeScaleName)}
-                    ${this._renderScaleSelect("Division Scale", "DIVISION", this._data.currentScales.divisionScaleName)}
-                    ${this._renderScaleSelect("Conduct (Alpha)", "CONDUCT_ALPHA", this._data.currentScales.conductAlphaScaleName)}
-                    ${this._renderScaleSelect("Conduct (Text)", "CONDUCT_TEXT", this._data.currentScales.conductTextScaleName)}
-                </div>
+            <div class="grid grid-cols-1 gap-5">
+                ${scales.map(s => `
+                    <div class="group p-4 bg-slate-50 rounded-2xl border border-transparent hover:border-blue-100 transition-all">
+                        <label class="block text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">${s.label}</label>
+                        <select id="${s.id}-scale-select" class="w-full bg-transparent text-sm font-bold text-slate-700 focus:outline-none">
+                            <option value="${s.value}">${this._data.currentScales[s.id + 'ScaleName'] || 'Select Scale...'}</option>
+                            </select>
+                        ${this._data.suggestedScaleIds[s.key] ? `
+                            <p class="mt-2 text-[9px] text-blue-500 font-bold italic uppercase">
+                                Suggested: ${this._data.suggestedScaleIds[s.key]}
+                            </p>
+                        ` : ''}
+                    </div>
+                `).join('')}
             </div>
         `;
     },
 
-    _renderScaleSelect(label, type, currentName) {
+    _renderStaff() {
         return `
             <div class="space-y-2">
-                <label class="text-[11px] font-black text-slate-400 uppercase tracking-widest">${label}</label>
-                <div class="relative group">
-                    <select class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 transition-all appearance-none">
-                        <option value="">${currentName || 'Select Scale...'}</option>
-                    </select>
-                    <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-                    </div>
-                </div>
-            </div>
-        `;
-    },
-
-    _renderStaffTab() {
-        return `
-            <div class="animate-in slide-in-from-bottom-2 duration-300">
-                <div class="flex justify-between items-center mb-6">
-                    <h4 class="text-sm font-black text-slate-800 uppercase tracking-tight">Subject Assignments</h4>
-                    <span class="text-[11px] font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">${this._data.staffingRatio} Subjects Set</span>
-                </div>
-                <div class="space-y-3">
-                    ${this._data.staffAssignments.map(s => `
-                        <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-blue-200 transition-all">
-                            <div class="flex items-center gap-4">
-                                <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center border border-slate-200 font-black text-xs text-slate-500">
-                                    ${s.subjectName.substring(0, 3).toUpperCase()}
-                                </div>
-                                <div>
-                                    <div class="text-sm font-bold text-slate-800">${s.fullName}</div>
-                                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${s.subjectName}</div>
-                                </div>
+                ${this._data.staffAssignments.map(sa => `
+                    <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-white hover:shadow-md hover:shadow-slate-100 transition-all border border-transparent hover:border-slate-100 group">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center text-[10px] font-black uppercase shadow-sm">
+                                ${sa.subjectName.substring(0, 3)}
                             </div>
-                            <div class="flex items-center gap-3">
-                                ${s.isClassTeacher ? '<span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-black rounded uppercase">Class Teacher</span>' : ''}
-                                ${!s.isActive ? '<span class="w-2 h-2 bg-red-400 rounded-full"></span>' : '<span class="w-2 h-2 bg-emerald-400 rounded-full"></span>'}
+                            <div>
+                                <p class="text-xs font-black text-slate-700 uppercase tracking-tighter">${sa.subjectName}</p>
+                                ${sa.isClassTeacher ? '<span class="text-[8px] font-black bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded uppercase">Class Teacher</span>' : ''}
                             </div>
                         </div>
-                    `).join('')}
-                </div>
+                        
+                        <div class="text-right">
+                            <button class="text-xs font-bold transition-colors ${sa.teacherId ? 'text-slate-600' : 'text-blue-500 hover:text-blue-700 underline underline-offset-4 decoration-blue-200'}">
+                                ${sa.fullName || 'Assign Teacher'}
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
             </div>
         `;
     },
 
-    _renderStudentsTab() {
+    _renderStudents() {
         return `
             <div class="animate-in slide-in-from-bottom-2 duration-300">
                 <div class="grid grid-cols-1 gap-2">
@@ -209,27 +191,58 @@ export const RoomDetailModal = {
     _setupListeners() {
         const overlay = document.getElementById('room-detail-overlay');
         
-        // Chiudi
         document.getElementById('close-detail-modal').onclick = () => overlay.remove();
         document.getElementById('cancel-detail').onclick = () => overlay.remove();
 
-        // Switch Tabs
         document.querySelectorAll('.tab-trigger').forEach(btn => {
             btn.onclick = () => {
                 this._currentTab = btn.dataset.tab;
-                this._updateTabUI();
+                this._renderTabContent(); // Aggiorna solo il contenuto interno
+                this._updateTabButtons();
             };
         });
+
+        document.getElementById('save-room-detail').onclick = async () => {
+            if (!this._isAuthorized) return;
+            const scaleData = {
+                gradeScaleId: document.getElementById('grade-scale-select').value,
+                divisionScaleId: document.getElementById('division-scale-select').value,
+                conductAlphaScaleId: document.getElementById('conduct-alpha-scale-select').value,
+                conductTextScaleId: document.getElementById('conduct-text-scale-select').value
+            };
+
+            if (this._yearRoomId) {
+                // UPDATE
+                const success = await SchoolConfigService.updateYearRoomScales(this._yearRoomId, scaleData);
+                if (success) {
+                    ToastView.show("Configuration updated", "success");
+                    overlay.remove();
+                }
+            } else {
+                // ACTIVATE (NEW)
+                const payload = { ...this._creationParams, ...scaleData };
+                const result = await SchoolConfigService.assignRoom(payload);
+                if (result && result.success) {
+                    ToastView.show("Room activated!", "success");
+                    overlay.remove();
+                    if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
+                } else {
+                    ToastView.show(result?.message || "Error", "error");
+                }
+            }
+        };
     },
 
-    _updateTabUI() {
-        // Aggiorna bottoni
+    _renderTabContent() {
+        document.getElementById('modal-tab-content').innerHTML = this._getTabContent();
+    },
+
+    _updateTabButtons() {
         document.querySelectorAll('.tab-trigger').forEach(btn => {
             const isActive = btn.dataset.tab === this._currentTab;
-            btn.className = `tab-trigger px-6 py-2 rounded-xl text-xs font-black uppercase tracking-tighter transition-all duration-200 
-                ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`;
+            btn.className = `tab-trigger flex-1 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-200
+                ${btn.disabled ? 'opacity-30 cursor-not-allowed' : ''}
+                ${isActive ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`;
         });
-        // Aggiorna contenuto
-        document.getElementById('tab-content').innerHTML = this._renderCurrentTab();
     }
 };

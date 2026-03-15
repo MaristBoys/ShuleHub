@@ -12,8 +12,6 @@ export const ActiveRoomsModal = {
         this._currentYearName = yearName;
         const result = await SchoolConfigService.getRoomMatrix(yearId);
         
-        console.log(result);
-
         if (!result.success) {
             return ToastView.show("Error loading room matrix", "error");
         }
@@ -38,7 +36,7 @@ export const ActiveRoomsModal = {
                 </div>
 
                 <div class="flex-1 overflow-auto px-4 pb-8 bg-slate-200/60">
-                    <table class="w-full border-separate border-spacing-4">
+                    <table class="w-full border-separate border-spacing-4 table-fixed min-w-[800px]">
                         <thead>
                             <tr>
                                
@@ -115,43 +113,76 @@ export const ActiveRoomsModal = {
     /**
      * Template per una stanza con dati dashboard
      */
-    _renderActiveRoom(room) {
-        // Logica colore Staffing Badge
-        let staffingClass = "bg-red-100 text-red-700"; // Sotto il 50%
-        if (room.staffingPercentage >= 1) {
-            staffingClass = "bg-green-100 text-green-700"; // Al completo
-        } else if (room.staffingPercentage >= 0.5) {
-            staffingClass = "bg-orange-100 text-orange-700"; // Sopra il 50%
-        }
-    
-        return `
-            <button data-id="${room.yearRoomId}" class="room-cell group w-full bg-white border-2 border-transparent hover:border-blue-500 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col gap-3 text-left">
-                
-                <div class="flex justify-between items-start">
-                    <span class="text-lg font-black text-blue-900">${room.roomName}</span>
-                    <span class="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                        ${room.studentCount || 0}
-                    </span>
-                </div>
+    _renderCell(room, formId, sNum, isAuthorized, suggestedName) {
+        if (room) {
+            const isActive = room.isActive !== false;
+            
+            // --- Ripristino Logica Colore Staffing Badge ---
+            let staffingClass = "bg-red-100 text-red-700"; // Sotto il 50%
+            if (room.staffingPercentage >= 1) {
+                staffingClass = "bg-green-100 text-green-700"; // Al completo
+            } else if (room.staffingPercentage >= 0.5) {
+                staffingClass = "bg-orange-100 text-orange-700"; // Sopra il 50%
+            }
 
-                <div class="flex items-center gap-2">
-                    <div class="p-1.5 rounded-lg ${room.classTeacherId ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'}">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            // Se la stanza è disattivata, forziamo un colore neutro per coerenza visiva
+            const finalStaffingClass = isActive ? staffingClass : "bg-slate-200 text-slate-500";
+
+            return `
+                <button 
+                    data-id="${room.yearRoomId}"
+                    class="room-cell group relative w-full p-4 rounded-2xl border-2 transition-all duration-300 flex flex-col items-start gap-3
+                    ${isActive 
+                        ? 'bg-white border-white shadow-sm hover:shadow-xl hover:border-blue-400 hover:-translate-y-1' 
+                        : 'bg-slate-100/50 border-dashed border-slate-300 opacity-75 grayscale-[0.3]'}"
+                >
+                    <div class="flex justify-between items-start w-full">
+                        <div class="flex items-center gap-2">
+                            <div class="p-2 rounded-xl ${isActive ? 'bg-blue-50 text-blue-600' : 'bg-slate-200 text-slate-500'} group-hover:scale-110 transition-transform duration-300">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                            </div>
+                            
+                            <div class="px-2 py-1 rounded-lg ${finalStaffingClass} text-[10px] font-black tracking-tighter transition-colors">
+                                ${room.staffingRatio || '0/0'}
+                            </div>
+                        </div>
+                        
+                        ${!isActive ? `
+                            <span class="bg-slate-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full tracking-tighter uppercase">Inactive</span>
+                        ` : ''}
                     </div>
-                    <span class="text-xs font-bold truncate ${room.classTeacherId ? 'text-slate-700' : 'text-slate-400 italic'}">
-                        ${room.classTeacherName || 'No Class Teacher'}
-                    </span>
-                </div>
 
-                <div class="mt-1 pt-3 border-t border-slate-50 flex justify-between items-center">
-                    <span class="text-[9px] uppercase font-black text-slate-400 tracking-tighter">Staffing Ratio</span>
-                    <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${staffingClass}">
-                        ${room.staffingRatio || '0/0'}
-                    </span>
-                </div>
-            </button>
-        `;
+                    <div class="text-left">
+                        <div class="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">
+                            ${room.formName || 'N/A'}
+                        </div>
+                        <div class="text-lg font-black ${isActive ? 'text-blue-900' : 'text-slate-600'} leading-none">
+                            ${room.roomName}
+                        </div>
+                    </div>
+
+                    <div class="w-full pt-3 border-t ${isActive ? 'border-slate-50' : 'border-slate-200/50'} flex justify-between items-center">
+                        <div class="flex items-center gap-1.5 min-w-0">
+                            <div class="w-5 h-5 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </div>
+                            <span class="text-[10px] font-bold ${isActive ? 'text-slate-600' : 'text-slate-400'} truncate">
+                                ${room.classTeacherName || 'No Teacher'}
+                            </span>
+                        </div>
+                        
+                        <div class="flex items-center gap-1 bg-slate-50 px-2 py-1 rounded-lg shrink-0">
+                            <span class="text-[11px] font-black ${isActive ? 'text-blue-600' : 'text-slate-400'}">
+                                ${room.studentCount || 0}
+                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                        </div>
+                    </div>
+                </button>
+            `;
+        }
+
+        return this._renderEmptySlot(formId, sNum, isAuthorized, suggestedName);
     },
 
     /**
@@ -159,7 +190,8 @@ export const ActiveRoomsModal = {
      */
      _renderEmptySlot(formId, streamNum, isAuthorized, suggestedName) {
         return `
-            <button data-form="${formId}" data-stream="${streamNum}" 
+            <button 
+                data-room-num="${suggestedName}" 
                 class="add-room-cell w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50/50 transition-all group">
                 <div class="p-2 rounded-full border-2 border-slate-100 group-hover:border-blue-200 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -173,27 +205,39 @@ export const ActiveRoomsModal = {
 
 
     _setupListeners(isAuthorized) {
-        document.getElementById('close-rooms-modal').onclick = () => {
-            document.getElementById('rooms-modal-overlay').remove();
-        };
+        // Chiudi il modale
+        const closeBtn = document.getElementById('close-rooms-modal');
+        if (closeBtn) {
+            closeBtn.onclick = () => {
+                document.getElementById('rooms-modal-overlay').remove();
+            };
+        }
 
-        // Click su stanza attiva -> Dashboard Dettaglio Room
+        // --- AGGANCIO ROOM DETAIL MODAL ---
+        // Seleziona tutte le celle delle stanze attive (quelle con la classe .room-cell)
         document.querySelectorAll('.room-cell').forEach(btn => {
             btn.onclick = () => {
-                const roomId = btn.dataset.id;
-                console.log("Opening Room Dashboard:", roomId);
-                ToastView.show("Loading room dashboard...", "info");
-                // Qui chiameremo il componente della Fase 3
+                const yearRoomId = btn.dataset.id;
+                //console.log("Opening Room Details for ID:", yearRoomId);
+                
+                // Chiamata al modale di dettaglio (Fase 3)
+                RoomDetailModal.show(yearRoomId, isAuthorized);
             };
         });
 
-        // Click su slot vuoto -> Assegnazione rapida
+        // 1. Click su slot vuoto (Ghost Cell) -> Apre il modale in modalità PREVIEW
         document.querySelectorAll('.add-room-cell').forEach(btn => {
-            btn.onclick = () => {
+            btn.onclick = async () => {
                 if(!isAuthorized) return ToastView.show("Unauthorized", "warning");
-                const { form, stream } = btn.dataset;
-                console.log(`Assigning new room to Form ${form} Stream ${stream}`);
-                // Qui apriremo il selettore delle stanze fisiche
+
+                // LEGGI roomNum dal dataset che abbiamo appena aggiunto sopra
+                const roomNum = btn.dataset.roomNum; 
+                const yearId = this._currentYearId;
+
+                console.log("Opening Preview for Room Number:", roomNum, "Year:", yearId);
+                
+                // Passiamo roomNum nell'oggetto dei parametri
+                RoomDetailModal.show(null, isAuthorized, { yearId, roomNum });
             };
         });
     }

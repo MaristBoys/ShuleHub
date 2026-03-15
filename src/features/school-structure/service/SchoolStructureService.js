@@ -6,7 +6,7 @@ export const SchoolStructureService = {
      */
     async getYears() {
         try {
-            const response = await api.fetchWithLoader('/api/v1/school-structure/years', { method: 'GET' }, 'Caricamento anni...');
+            const response = await api.fetchWithLoader('/api/v1/school-structure/years', { method: 'GET' }, 'Loading years...');
             if (!response.ok) return [];
             const result = await response.json();
             return result.success ? result.data : [];
@@ -20,7 +20,7 @@ export const SchoolStructureService = {
      * Crea il prossimo anno accademico
      */
     async createNextYear() {
-        const response = await api.fetchWithLoader('/api/v1/school-structure/years', { method: 'POST' }, 'Generazione nuovo anno...');
+        const response = await api.fetchWithLoader('/api/v1/school-structure/years', { method: 'POST' }, 'Creating new year...');
         return await response.json();
     },
 
@@ -30,7 +30,7 @@ export const SchoolStructureService = {
     async activateYear(yearId) {
         const response = await api.fetchWithLoader(`/api/v1/school-structure/years/${yearId}/activate`, { 
             method: 'PATCH' 
-        }, 'Attivazione anno...');
+        }, 'Activating year...');
         return await response.json();
     }
 };

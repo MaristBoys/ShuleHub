@@ -21,20 +21,38 @@ export const SchoolConfigService = {
         }
     },
 
+    // prepara i dati per la preview del modale di dettaglio della room 
+    // quando si vuole creare una nuova room nell'anno
+    // a seguito del clic sulla ghost cell
+    //  Include: info stanza da creare (nome e anno), scale suggerite, il resto null
+    async getRoomPreview(yearId, roomNum) {
+        try {
+            const response = await api.fetchWithLoader(
+                `/api/v1/school-config/rooms/preview?yearId=${yearId}&roomNum=${roomNum}`,
+                { method: 'GET' },
+                'Generating preview...'
+            );
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching preview:', error);
+            return { success: false };
+        }
+    },
+
     /**
      * Recupera i dati aggregati per il modale di dettaglio di una stanza
      * Include: info stanza, scale attuali e suggerimenti.
      * Endpoint: /api/v1/school-config/rooms/{id}/details
      */
-    async getRoomDetails(roomId) {
+    async getYearRoomDetails(roomId) {
         try {
             const response = await api.fetchWithLoader(
                 `/api/v1/school-config/rooms/${roomId}/details`,
                 { method: 'GET' },
                 'Caricamento dettagli stanza...'
             );
-            const result = await response.json();
-            return result.success ? result.data : null;
+            return await response.json();
+            
         } catch (error) {
             console.error('Error fetching room details:', error);
             return null;

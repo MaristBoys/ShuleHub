@@ -151,7 +151,7 @@ export const YearModal = {
                 const result = await SchoolStructureService.createNextYear();
                 if (result) {
                     //FeedbackView.show('success', `Year ${result.year} generated successfully.`, "Success");
-                    ToastView.show(`Year ${result.year} generated successfully.`, 'success', 5000);
+                    ToastView.show(`Year ${result.data.year} generated successfully.`, 'success', 5000);
                     this._refresh();
                 }
             } catch (error) {

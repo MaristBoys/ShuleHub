@@ -40,7 +40,7 @@ export const AuthController = {
             if (!api.isServerAwake) {
                 const waitMsg = "Connecting to the server...";
                 LoaderView.show(waitMsg);
-                LoaderView.startCountdown(120);
+                LoaderView.startCountdown(150);
                 
                 await AuthService.ensureServerIsAwake();
             }

@@ -12,6 +12,8 @@ export const ActiveRoomsModal = {
         this._currentYearName = yearName;
         const result = await SchoolConfigService.getRoomMatrix(yearId);
         
+        console.log(result);
+
         if (!result.success) {
             return ToastView.show("Error loading room matrix", "error");
         }
@@ -36,7 +38,7 @@ export const ActiveRoomsModal = {
                 </div>
 
                 <div class="flex-1 overflow-auto px-4 pb-8 bg-slate-200/60">
-                    <table class="w-full border-separate border-spacing-4 table-fixed min-w-[800px]">
+                    <table class="w-full border-separate border-spacing-4">
                         <thead>
                             <tr>
                                
@@ -137,7 +139,7 @@ export const ActiveRoomsModal = {
                     <div class="p-1.5 rounded-lg ${room.classTeacherId ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </div>
-                    <span class="text-xs font-bold truncate block w-full ${room.classTeacherId ? 'text-slate-700' : 'text-slate-400 italic'}">
+                    <span class="text-xs font-bold truncate ${room.classTeacherId ? 'text-slate-700' : 'text-slate-400 italic'}">
                         ${room.classTeacherName || 'No Class Teacher'}
                     </span>
                 </div>
@@ -157,8 +159,7 @@ export const ActiveRoomsModal = {
      */
      _renderEmptySlot(formId, streamNum, isAuthorized, suggestedName) {
         return `
-            <button 
-                data-room-num="${suggestedName}" 
+            <button data-form="${formId}" data-stream="${streamNum}" 
                 class="add-room-cell w-full h-32 border-2 border-dashed border-slate-200 rounded-2xl flex flex-col items-center justify-center gap-2 text-slate-400 hover:text-blue-500 hover:border-blue-200 hover:bg-blue-50/50 transition-all group">
                 <div class="p-2 rounded-full border-2 border-slate-100 group-hover:border-blue-200 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -172,39 +173,27 @@ export const ActiveRoomsModal = {
 
 
     _setupListeners(isAuthorized) {
-        // Chiudi il modale
-        const closeBtn = document.getElementById('close-rooms-modal');
-        if (closeBtn) {
-            closeBtn.onclick = () => {
-                document.getElementById('rooms-modal-overlay').remove();
-            };
-        }
+        document.getElementById('close-rooms-modal').onclick = () => {
+            document.getElementById('rooms-modal-overlay').remove();
+        };
 
-        // --- AGGANCIO ROOM DETAIL MODAL ---
-        // Seleziona tutte le celle delle stanze attive (quelle con la classe .room-cell)
+        // Click su stanza attiva -> Dashboard Dettaglio Room
         document.querySelectorAll('.room-cell').forEach(btn => {
             btn.onclick = () => {
-                const yearRoomId = btn.dataset.id;
-                //console.log("Opening Room Details for ID:", yearRoomId);
-                
-                // Chiamata al modale di dettaglio (Fase 3)
-                RoomDetailModal.show(yearRoomId, isAuthorized);
+                const roomId = btn.dataset.id;
+                console.log("Opening Room Dashboard:", roomId);
+                ToastView.show("Loading room dashboard...", "info");
+                // Qui chiameremo il componente della Fase 3
             };
         });
 
-        // 1. Click su slot vuoto (Ghost Cell) -> Apre il modale in modalità PREVIEW
+        // Click su slot vuoto -> Assegnazione rapida
         document.querySelectorAll('.add-room-cell').forEach(btn => {
-            btn.onclick = async () => {
+            btn.onclick = () => {
                 if(!isAuthorized) return ToastView.show("Unauthorized", "warning");
-
-                // LEGGI roomNum dal dataset che abbiamo appena aggiunto sopra
-                const roomNum = btn.dataset.roomNum; 
-                const yearId = this._currentYearId;
-
-                console.log("Opening Preview for Room Number:", roomNum, "Year:", yearId);
-                
-                // Passiamo roomNum nell'oggetto dei parametri
-                RoomDetailModal.show(null, isAuthorized, { yearId, roomNum });
+                const { form, stream } = btn.dataset;
+                console.log(`Assigning new room to Form ${form} Stream ${stream}`);
+                // Qui apriremo il selettore delle stanze fisiche
             };
         });
     }

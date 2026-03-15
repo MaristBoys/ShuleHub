@@ -2,6 +2,7 @@
 import { FeedbackView } from '../../../core/FeedbackView.js';
 import { ToastView } from '../../../core/ToastView.js';
 import { SubjectService } from '../../subject/service/SubjectService.js';
+import { DashboardController } from '../../dashboard/DashboardController.js';
 
 export const SubjectDetailModal = {
     /**
@@ -125,6 +126,7 @@ export const SubjectDetailModal = {
             if (result.success) {
                 ToastView.show(`Subject ${isAuthorized ? 'saved' : 'updated'} successfully`, 'success');
                 close();
+                DashboardController.init();
                 if (onSaveSuccess) onSaveSuccess();
             } else {
                 FeedbackView.show('error', result.message || "Operation failed", "Error");

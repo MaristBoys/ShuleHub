@@ -2,14 +2,20 @@
 import { ToastView } from '../../../core/ToastView.js';
 import { SchoolStructureService } from '../../school-structure/service/SchoolStructureService.js';
 import { SchoolConfigService } from '../services/SchoolConfigService.js';
-import { RoomDetailModal } from './RoomDetailModal.js';
+import { RoomDetailModal } from './room-detail/RoomDetailModal.js';
 
 export const ActiveRoomsModal = {
     _currentYearId: null,
 
     async show(yearId, isAuthorized = false, yearName = '') {
+
+        // PULIZIA: Rimuove il modale se è già presente (fondamentale per il refresh)
+        const existingModal = document.getElementById('rooms-modal-overlay');
+        if (existingModal) existingModal.remove();
+
         this._currentYearId = yearId;
         this._currentYearName = yearName;
+        this._isAuthorized = isAuthorized; // Salviamolo per il refresh
         const result = await SchoolConfigService.getRoomMatrix(yearId);
         
         if (!result.success) {
@@ -17,6 +23,8 @@ export const ActiveRoomsModal = {
         }
 
         const { streams, rows } = result.data;
+
+        console.log(result.data);
 
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'rooms-modal-overlay';
@@ -42,7 +50,8 @@ export const ActiveRoomsModal = {
                         </tr>
                     </thead>
                     <tbody>
-                        ${rows.map(row => `
+
+                         ${rows.map(row => `
                             <tr>
                                 ${streams.map(sNum => {
                                     const room = row.cells[String(sNum)];
@@ -56,6 +65,7 @@ export const ActiveRoomsModal = {
                                 </td>
                             </tr>
                         `).join('')}
+
                     </tbody>
                 </table>
             </div>
@@ -92,6 +102,7 @@ export const ActiveRoomsModal = {
      * Renderizza il contenuto della cella (Stanza attiva o Slot vuoto)
      */
     _renderCell(room, formId, streamNum, isAuthorized, suggestedName) {
+        
         if (room && room.assigned === true) {
             return this._renderActiveRoom(room);
         } else {
@@ -104,38 +115,53 @@ export const ActiveRoomsModal = {
      * Template per una stanza con dati dashboard
      */
     _renderActiveRoom(room) {
-        // Logica colore Staffing Badge
-        let staffingClass = "bg-red-100 text-red-700"; // Sotto il 50%
+        // 1. Controllo dello stato attivo
+        const isRoomActive = room.isActive !== false;
+
+        // 2. Logica colore Staffing Badge (manteniamo la tua logica originale)
+        let staffingClass = "bg-red-100 text-red-700";
         if (room.staffingPercentage >= 1) {
-            staffingClass = "bg-green-100 text-green-700"; // Al completo
+            staffingClass = "bg-green-100 text-green-700";
         } else if (room.staffingPercentage >= 0.5) {
-            staffingClass = "bg-orange-100 text-orange-700"; // Sopra il 50%
+            staffingClass = "bg-orange-100 text-orange-700";
         }
-    
+
+        // Sovrascriviamo il colore del badge se la stanza è inattiva per non creare confusione visiva
+        if (!isRoomActive) {
+            staffingClass = "bg-slate-200 text-slate-500";
+        }
+
         return `
-            <button data-id="${room.yearRoomId}" class="room-cell group w-full bg-white border-2 border-transparent hover:border-blue-500 p-4 rounded-2xl shadow-sm hover:shadow-md transition-all flex flex-col gap-3 text-left">
+            <button data-id="${room.yearRoomId}" 
+                class="room-cell group w-full p-4 rounded-2xl shadow-sm transition-all flex flex-col gap-3 text-left border-2
+                ${isRoomActive 
+                    ? 'bg-white border-transparent hover:border-blue-500 hover:shadow-md' 
+                    : 'bg-slate-50 border-slate-200 opacity-60 grayscale-[0.5] cursor-pointer'
+                }">
                 
                 <div class="flex justify-between items-start">
-                    <span class="text-lg font-black text-blue-900">${room.roomName}</span>
-                    <span class="flex items-center gap-1 text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded-lg">
+                    <span class="text-lg font-black ${isRoomActive ? 'text-blue-900' : 'text-slate-500'}">
+                        ${room.roomName}
+                    </span>
+                    <span class="flex items-center gap-1 text-[10px] font-bold ${isRoomActive ? 'text-slate-500 bg-slate-100' : 'text-slate-400 bg-slate-200'} px-2 py-1 rounded-lg">
                         <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         ${room.studentCount || 0}
                     </span>
                 </div>
 
                 <div class="flex items-center gap-2">
-                    <div class="p-1.5 rounded-lg ${room.classTeacherId ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-400'}">
+                    <div class="p-1.5 rounded-lg ${isRoomActive && room.classTeacherId ? 'bg-blue-50 text-blue-600' : 'bg-slate-100 text-slate-400'}">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     </div>
-                    <span class="text-xs font-bold truncate block w-full ${room.classTeacherId ? 'text-slate-700' : 'text-slate-400 italic'}">
-                        ${room.classTeacherName || 'No Class Teacher'}
+                    <span class="text-xs font-bold truncate block w-full ${isRoomActive && room.classTeacherId ? 'text-slate-700' : 'text-slate-400 italic'}">
+                        ${isRoomActive ? (room.classTeacherName || 'No Class Teacher') : 'ROOM INACTIVE'}
                     </span>
                 </div>
 
-                <div class="mt-1 pt-3 border-t border-slate-50 flex justify-between items-center">
+                <div class="mt-1 pt-3 border-t ${isRoomActive ? 'border-slate-50' : 'border-slate-200'} flex justify-between items-center">
                     <span class="text-[9px] uppercase font-black text-slate-400 tracking-tighter">Staffing Ratio</span>
                     <span class="px-2 py-0.5 rounded-md text-[10px] font-black ${staffingClass}">
-                        ${room.staffingRatio || '0/0'}
+                        ${isRoomActive ? (room.staffingRatio || '0/0') : 'N/A'}
                     </span>
                 </div>
             </button>
@@ -197,5 +223,21 @@ export const ActiveRoomsModal = {
                 RoomDetailModal.show(null, isAuthorized, { yearId, roomNum });
             };
         });
+    },
+
+
+    // In fondo all'oggetto ActiveRoomsModal
+    async refresh() {
+        if (!this._currentYearId) return;
+        
+        // Richiamiamo show: pulirà il vecchio e caricherà il nuovo
+        await this.show(
+            this._currentYearId, 
+            this._isAuthorized, 
+            this._currentYearName
+        );
     }
 };
+
+// per poterlo far richiamare da RoomDetailModal quando chiama il refresh
+    window.ActiveRoomsModal = ActiveRoomsModal;

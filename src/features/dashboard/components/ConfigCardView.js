@@ -114,11 +114,10 @@ export const ConfigCardView = {
                     const canEditYear = userPermissions.has('CONFIG_EDIT_YEAR');
                     YearModal.show(hasAllAccess, canEditYear);
                 }
-                
                
                 if (type === 'rooms') {
                     //const canViewRooms = userPermissions.has('CONFIG_VIEW_ROOMS') || hasAllView;
-                    const canEditRooms = userPermissions.has('CONFIG_EDIT_ROOMS') || hasAllAccess;
+                    const canEditRooms = userPermissions.has('CONFIG_EDIT_ROOM') || hasAllAccess;
                     ActiveRoomsModal.show(currentYear, canEditRooms, currentYearName);
                     /*
                     if (canViewRooms || canEditRooms) {
@@ -126,8 +125,6 @@ export const ConfigCardView = {
                         ActiveRoomsModal.show(currentYear, canEditRooms);
                     }*/
                 }
-
-
 
                 if (type === 'subjects') {
                     // Passiamo i flag di autorizzazione al nuovo modale Subjects

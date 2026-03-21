@@ -11,7 +11,7 @@ export const SchoolConfigService = {
             const response = await api.fetchWithLoader(
                 `/api/v1/school-config/rooms/matrix/${yearId}`,
                 { method: 'GET' },
-                'Caricamento matrice stanze...'
+                'Loading Rooms...'
             );
             const result = await response.json();
             return result.success ? result : null;
@@ -49,7 +49,7 @@ export const SchoolConfigService = {
             const response = await api.fetchWithLoader(
                 `/api/v1/school-config/rooms/${roomId}/details`,
                 { method: 'GET' },
-                'Caricamento dettagli stanza...'
+                'Loading Room details...'
             );
             return await response.json();
             
@@ -60,10 +60,30 @@ export const SchoolConfigService = {
     },
 
     /**
+     * Attiva o disattiva una YearRoom specifica
+     * Endpoint: /api/v1/school-config/rooms/{id}/status
+     */
+    async toggleRoomStatus(yearRoomId, isActive) {
+        try {
+            const response = await api.fetchWithLoader(
+                `/api/v1/school-config/rooms/${yearRoomId}/status?active=${isActive}`,
+                { method: 'PATCH' },
+                isActive ? 'Activating room...' : 'Deactivating room...'
+            );
+            return await response.json();
+        } catch (error) {
+            console.error('Error toggling room status:', error);
+            return { success: false, message: "Connection error" };
+        }
+    },
+
+
+
+    /**
      * Salva l'assegnazione delle scale di valutazione a una stanza
      * Endpoint: /api/v1/school-config/rooms/{id}/scales
      */
-    async updateRoomScales(roomId, scaleIds) {
+    async updateYearRoomScales(roomId, scaleIds) {
         const response = await api.fetchWithLoader(
             `/api/v1/school-config/rooms/${roomId}/scales`,
             {
@@ -71,7 +91,7 @@ export const SchoolConfigService = {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(scaleIds)
             },
-            'Salvataggio scale...'
+            'Saving scales...'
         );
         return await response.json();
     }

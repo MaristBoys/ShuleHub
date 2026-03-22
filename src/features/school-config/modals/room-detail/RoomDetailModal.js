@@ -6,6 +6,9 @@ import { ScalesTab } from './tabs/ScalesTab.js';
 import { StaffTab } from './tabs/StaffTab.js';
 import { StudentsTab } from './tabs/StudentsTab.js';
 
+import { TeacherPickerModal } from './TeacherPickerModal.js';
+import { TeacherAssignmentService } from '../../../teacher-assignment/services/TeacherAssignmentService.js';
+
 export const RoomDetailModal = {
     _currentTab: 'scales',
     _data: null,
@@ -14,6 +17,10 @@ export const RoomDetailModal = {
     _creationParams: null,
 
     async show(yearRoomId, isAuthorized = false, previewParams = null) {
+        // Rimuovi eventuali residui rimasti appesi per errore, quando chiudu e riapri lo stesso modale
+        const oldOverlay = document.getElementById('room-detail-overlay');
+        if (oldOverlay) oldOverlay.remove();
+        
         this._isAuthorized = isAuthorized;
         this._currentTab = 'scales';
         this._yearRoomId = yearRoomId;
@@ -41,7 +48,7 @@ export const RoomDetailModal = {
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'room-detail-overlay';
         // Layout drawer mobile (items-end) e centrato desktop (sm:items-center)
-        modalOverlay.className = 'fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-[9999] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200';
+        modalOverlay.className = 'fixed inset-0 bg-blue-900/40 backdrop-blur-sm z-[110] flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in duration-200';
 
         modalOverlay.innerHTML = `
             <div class="bg-white w-full max-w-2xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-in slide-in-from-bottom sm:zoom-in duration-300">
@@ -73,7 +80,7 @@ export const RoomDetailModal = {
                                 
                                 <div class="flex items-baseline gap-1.5 min-w-0">
                                     <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter shrink-0 leading-none">CT:</span>
-                                    <span class="text-xs font-bold text-slate-700 truncate max-w-[140px] leading-none">
+                                    <span id="header-teacher-name" class="text-xs font-bold text-slate-700 truncate max-w-[140px] leading-none">
                                         ${this._data.classTeacherName || 'Not Assigned'}
                                     </span>
                                 </div>
@@ -122,7 +129,8 @@ export const RoomDetailModal = {
         `;
 
         document.body.appendChild(modalOverlay);
-        this._setupListeners();
+        // IMPORTANTE: Passa il nuovo overlay appena creato ai listener, (aggancia i listener all'Overlay appena creato)
+        this._setupListeners(modalOverlay);
     },
 
     _getTabContent() {
@@ -134,13 +142,20 @@ export const RoomDetailModal = {
         }
     },
 
-    _setupListeners() {
-        const overlay = document.getElementById('room-detail-overlay');
-        
-        document.getElementById('close-detail-modal').onclick = () => overlay.remove();
+    _setupListeners(overlay) {
+        //const overlay = document.getElementById('room-detail-overlay');
+        // Invece di usare document.getElementById ovunque, usa overlay.querySelector
+        // Questo garantisce che stai prendendo l'elemento DENTRO il modale attuale
+
+
+        //document.getElementById('close-detail-modal').onclick = () => overlay.remove();
+        const closeBtn = overlay.querySelector('#close-detail-modal');
+        if (closeBtn) closeBtn.onclick = () => overlay.remove();
+
+
 
         // Toggle stato
-        const statusToggle = document.getElementById('room-status-toggle');
+        const statusToggle =  overlay.querySelector('#room-status-toggle');
         if (statusToggle) {
             statusToggle.onchange = async (e) => {
                 const newStatus = e.target.checked;
@@ -165,76 +180,124 @@ export const RoomDetailModal = {
                     
                     // ricarica la dashboard
                     DashboardController.init(); 
+                    //chiude il modale
+                    //overlay.remove()
                 } else {
                     // ROLLBACK: se il server fallisce, riportiamo il toggle allo stato precedente
                     e.target.checked = !newStatus;
                     ToastView.show(result?.message || "Failed to update status", "error");
+                    //chiude il modale
+                    //overlay.remove()
                 }
             };
         }
 
-        // Cambio Tab
-        document.querySelectorAll('.tab-trigger').forEach(btn => {
+        // Cambio Tab - CORRETTO
+        overlay.querySelectorAll('.tab-trigger').forEach(btn => {
             btn.onclick = () => {
+                // 1. Aggiorna lo stato interno
                 this._currentTab = btn.dataset.tab;
-                document.getElementById('modal-tab-content').innerHTML = this._getTabContent();
-                this._updateTabUI();
+                
+                // 2. Cerca il contenitore del contenuto SOLO dentro questo modale
+                const contentContainer = overlay.querySelector('#modal-tab-content');
+                if (contentContainer) {
+                    contentContainer.innerHTML = this._getTabContent();
+                }
+                
+                // 3. Aggiorna l'interfaccia dei tab (passando l'overlay)
+                this._updateTabUI(overlay);
+                
+                // 4. Se hai logiche specifiche per i contenuti dei tab (es. riagganciare listener interni)
+                this._renderTabContent(overlay);
             };
         });
 
         // Click su CT nell'header apre tab Staffing
-        document.getElementById('header-teacher-edit').onclick = () => {
-            const btn = document.querySelector('[data-tab="staff"]');
-            if (btn && !btn.disabled) btn.click();
-        };
+        const teacherEditBtn = overlay.querySelector('#header-teacher-edit');
+        if (teacherEditBtn && this._isAuthorized) {
+            teacherEditBtn.onclick = () => {
+                TeacherPickerModal.show({
+                    title: `Assign Class Teacher for ${this._data.roomName}`,
+                    onSelect: async (employeeId, fullName) => {
+                        const res = await TeacherAssignmentService.assignClassTeacher(this._yearRoomId, employeeId);
+                        if (res.success) {
+                            // Aggiorniamo la UI locale
+                            const nameElement = overlay.querySelector('#header-teacher-name');
+                            if (nameElement) {
+                                nameElement.textContent = fullName;
+                            }
+                            this._data.classTeacherName = fullName; // aggiorniamo i dati interni
+                            ToastView.show("Class Teacher assigned", "success");
+                            
+                            // Se necessario, refresh della vista principale
+                            if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
+
+                            //chiude il modale
+                            //overlay.remove()
+                        }
+                    }
+                });
+            };
+        }
 
         // SAVE DISPATCHER
-        document.getElementById('save-room-config').onclick = async () => {
-            if (!this._isAuthorized) return;
-            
-            let success = false;
-            switch(this._currentTab) {
-                case 'scales':
-                    const result = await ScalesTab.save(this._yearRoomId, this._data.isActive, this._creationParams);
-                    success = result?.success !== undefined ? result.success : result;
-                    break;
-                case 'staff':
-                    success = await StaffTab.save(this._yearRoomId);
-                    break;
-                case 'students':
-                    success = await StudentsTab.save(this._yearRoomId);
-                    break;
-            }
+        const saveBtn = overlay.querySelector('#save-room-config');
 
-            if (success) {
-                ToastView.show("Saved successfully", "success");
-                overlay.remove();
-                if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
-            }
-        };
-    },
+        if (saveBtn) {
+            saveBtn.onclick = async () => {
 
+                if (!this._isAuthorized) return;
+                
+                let success = false;
+                switch(this._currentTab) {
+                    case 'scales':
+                        const result = await ScalesTab.save(this._yearRoomId, this._data.isActive, this._creationParams);
+                        success = result?.success !== undefined ? result.success : result;
+                        break;
+                    case 'staff':
+                        success = await StaffTab.save(this._yearRoomId);
+                        break;
+                    case 'students':
+                        success = await StudentsTab.save(this._yearRoomId);
+                        break;
+                }
 
-
-    // metodo utility per il listener del toggle
-    _updateStatusUI(isActive) {
-        const label = document.getElementById('status-label');
-        if (label) {
-            label.textContent = isActive ? 'Active' : 'Inactive';
-            label.className = `text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
-            //DashboardController.init();
+                if (success) {
+                    ToastView.show("Saved successfully", "success");
+                    overlay.remove();
+                    if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
+                }
+            };
         }
     },
 
-    _updateTabUI() {
-        document.querySelectorAll('.tab-trigger').forEach(btn => {
+
+    // metodo utility per il listener del toggle
+    _updateStatusUI(isActive, overlay) {
+        // Cerchiamo l'elemento solo all'interno del modale attivo
+        const scope = overlay || document.getElementById('room-detail-overlay');
+        if (!scope) return;
+
+        const label = scope.querySelector('#status-label');
+        if (label) {
+            label.textContent = isActive ? 'Active' : 'Inactive';
+            label.className = `text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-blue-600' : 'text-slate-400'}`;
+        }
+    },
+
+    _updateTabUI(overlay) {
+        // Usa l'overlay passato o cercalo nel documento se non passato (fallback)
+        const scope = overlay || document.getElementById('room-detail-overlay');
+        if (!scope) return;
+
+        scope.querySelectorAll('.tab-trigger').forEach(btn => {
             const isActive = btn.dataset.tab === this._currentTab;
             btn.classList.toggle('bg-white', isActive);
             btn.classList.toggle('text-blue-600', isActive);
             btn.classList.toggle('shadow-sm', isActive);
             btn.classList.toggle('text-slate-500', !isActive);
         });
-        const saveBtn = document.getElementById('save-room-config');
+        const saveBtn = scope.querySelector('#save-room-config');
         const labels = { scales: (!this._yearRoomId ? 'Activate Room' : 'Update Scales'), staff: 'Save Staffing', students: 'Save Student List' };
         saveBtn.textContent = labels[this._currentTab];
     }

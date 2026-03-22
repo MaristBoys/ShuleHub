@@ -42,8 +42,23 @@ export const RoomDetailModal = {
     },
 
     _render() {
-        const isNew = !this._yearRoomId;
-        const isActive = isNew ? true : (this._data.isActive !== false);
+        const isNew = !this._yearRoomId;  // Booleano per capire se è una Ghost Cell
+        
+        // Logica: se è nuova = Inactive (false). Se esiste = valore dal DB.
+        const isActive = isNew ? false : (this._data.isActive ?? false);
+
+        const statusLabelText = isActive ? 'Active' : 'Inactive';
+        const statusLabelColor = isActive ? 'text-blue-600' : 'text-slate-400';
+
+        // Toggle states
+        const toggleChecked = isActive ? "checked" : "";
+        const toggleDisabled = isNew ? "disabled" : "";
+        
+        // Se è nuova, il cursore deve indicare il divieto, altrimenti la manina
+        const cursorClass = isNew ? "cursor-not-allowed" : "cursor-pointer";
+
+        const teacherClickClass = isNew ? "opacity-50 cursor-not-allowed" : "hover:bg-white/50 cursor-pointer hover:border-white/80";
+
 
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'room-detail-overlay';
@@ -61,11 +76,11 @@ export const RoomDetailModal = {
                         </div>
                         <div class="flex items-center gap-3">
                             <div class="flex items-center gap-2 pr-3 border-r border-slate-100">
-                                <span id="status-label" class="text-[9px] font-black uppercase tracking-widest ${isActive ? 'text-blue-600' : 'text-slate-400'}">${isActive ? 'Active' : 'Inactive'}</span>
-                                <div class="relative inline-flex items-center w-9 h-5 cursor-pointer">
-                                    <input type="checkbox" id="room-status-toggle" class="peer absolute inset-0 w-full h-full opacity-0 z-10 cursor-pointer" ${isActive ? 'checked' : ''} ${!this._isAuthorized ? 'disabled' : ''}>
-                                    <div class="w-9 h-5 bg-slate-200 rounded-full transition-all duration-300 peer-checked:bg-blue-600 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
-                                </div>
+                                <span id="status-label" class="text-[9px] font-black uppercase tracking-widest ${statusLabelColor}">${statusLabelText}</span>
+                                <label class="relative inline-flex items-center w-9 h-5 ${cursorClass}">
+                                    <input type="checkbox" id="room-status-toggle" class="sr-only peer" ${toggleChecked} ${toggleDisabled}>
+                                    <div class="w-9 h-5 bg-slate-200 rounded-full transition-all duration-300 peer-checked:bg-blue-600 peer-disabled:opacity-50 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-4"></div>
+                                </label>
                             </div>
                             <button id="close-detail-modal" class="p-2 hover:bg-slate-100 rounded-full text-slate-400 transition-colors">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
@@ -73,33 +88,34 @@ export const RoomDetailModal = {
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-3">
-                            <button id="header-teacher-edit" class="flex items-center gap-2 bg-slate-50 hover:bg-slate-100 px-3 h-10 rounded-xl transition-all border border-slate-100 group shrink-0">
-                                <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                </div>
+                        <button id="header-teacher-edit" class="flex items-center gap-2 px-3 py-1.5 rounded-xl transition-all border border-transparent group ${teacherClickClass}">
+
+                            <div class="w-6 h-6 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center shrink-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            </div>
                                 
-                                <div class="flex items-baseline gap-1.5 min-w-0">
-                                    <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter shrink-0 leading-none">CT:</span>
-                                    <span id="header-teacher-name" class="text-xs font-bold text-slate-700 truncate max-w-[140px] leading-none">
-                                        ${this._data.classTeacherName || 'Not Assigned'}
-                                    </span>
-                                </div>
-
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 shrink-0">
-                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                                </svg>
-                            </button>
-
-                            <div class="flex items-center gap-2 bg-blue-50/50 px-3 h-10 rounded-xl border border-blue-100/50 shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                                <span class="text-xs font-black text-blue-700 whitespace-nowrap">
-                                    ${this._data.studentCount || 0} 
-                                    <span class="text-[9px] uppercase tracking-tighter ml-1 opacity-70 font-bold">Students</span>
+                            <div class="flex items-baseline gap-1.5 min-w-0">
+                                <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter shrink-0 leading-none">CT:</span>
+                                <span id="header-teacher-name" class="text-xs font-bold text-slate-700 truncate max-w-[140px] leading-none">
+                                    ${this._data.classTeacherName || 'Not Assigned'}
                                 </span>
                             </div>
+
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-blue-400 shrink-0">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </button>
+
+                        <div class="flex items-center gap-2 bg-blue-50/50 px-3 h-10 rounded-xl border border-blue-100/50 shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-blue-500 shrink-0"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                            <span class="text-xs font-black text-blue-700 whitespace-nowrap">
+                                ${this._data.studentCount || 0} 
+                                <span class="text-[9px] uppercase tracking-tighter ml-1 opacity-70 font-bold">Students</span>
+                            </span>
                         </div>
                     </div>
+                </div>
 
                 <div class="px-6 py-2 bg-white">
                     <div class="flex bg-slate-100 p-1 rounded-2xl">
@@ -125,6 +141,7 @@ export const RoomDetailModal = {
                         ${isNew ? 'Activate Room' : 'Update Scales'}
                     </button>
                 </div>
+                
             </div>
         `;
 
@@ -152,7 +169,7 @@ export const RoomDetailModal = {
         const closeBtn = overlay.querySelector('#close-detail-modal');
         if (closeBtn) closeBtn.onclick = () => overlay.remove();
 
-
+        const isNew = !this._yearRoomId; //per identificare la ghost cell
 
         // Toggle stato
         const statusToggle =  overlay.querySelector('#room-status-toggle');
@@ -214,7 +231,7 @@ export const RoomDetailModal = {
 
         // Click su CT nell'header apre tab Staffing
         const teacherEditBtn = overlay.querySelector('#header-teacher-edit');
-        if (teacherEditBtn && this._isAuthorized) {
+        if (teacherEditBtn && this._isAuthorized && !isNew) {
             teacherEditBtn.onclick = () => {
                 TeacherPickerModal.show({
                     title: `Assign Class Teacher for ${this._data.roomName}`,
@@ -238,6 +255,9 @@ export const RoomDetailModal = {
                     }
                 });
             };
+        } else if (teacherEditBtn) {
+        // Se è una nuova stanza, ci assicuriamo che non faccia nulla al click
+        teacherEditBtn.onclick = null;
         }
 
         // SAVE DISPATCHER

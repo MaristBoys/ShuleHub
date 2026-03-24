@@ -49,9 +49,10 @@ export const TeacherAssignmentService = {
                 {
                     method: 'PATCH',
                     headers: { 'Content-Type': 'application/json' },
+                    // employeeId sarà null se vogliamo rimuovere il docente
                     body: JSON.stringify({ employeeId })
                 },
-                'Assigning Class Teacher...'
+                employeeId ? 'Assigning Class Teacher...' : 'Removing Class Teacher...'
             );
             return await response.json();
         } catch (error) {

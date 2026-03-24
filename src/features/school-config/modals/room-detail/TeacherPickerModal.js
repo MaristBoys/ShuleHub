@@ -50,7 +50,7 @@ export const TeacherPickerModal = {
         }
     },
 
-    _renderList(teachers, onSelect) {
+ /*   _renderList(teachers, onSelect) {
         const container = document.getElementById('teachers-list');
         container.innerHTML = teachers.map(t => `
             <button class=\"teacher-item w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 transition-colors flex items-center gap-3 group\" 
@@ -69,6 +69,55 @@ export const TeacherPickerModal = {
             };
         });
     },
+*/
+    _renderList(teachers, onSelect) {
+        const container = document.getElementById('teachers-list');
+        
+        // 1. Creiamo l'opzione per rimuovere l'assegnazione (Unassign)
+        const unassignOption = `
+            <button class="teacher-item w-full text-left px-4 py-3 rounded-xl hover:bg-red-50 transition-colors flex items-center gap-3 group border-b border-slate-50 mb-2" 
+                    data-id="null" data-name="Not Assigned">
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 group-hover:bg-red-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+                </div>
+                <div class="flex flex-col">
+                    <span class="text-sm font-bold text-red-600">None / Remove</span>
+                   
+                </div>
+            </button>
+        `;
+
+        // 2. Renderizziamo l'opzione "null" seguita dalla lista dei docenti
+        container.innerHTML = unassignOption + teachers.map(t => `
+            <button class="teacher-item w-full text-left px-4 py-3 rounded-xl hover:bg-blue-50 transition-colors flex items-center gap-3 group" 
+                    data-id="${t.employeeId}" data-name="${t.fullName}">
+                <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-bold text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600">
+                    ${t.fullName.charAt(0)}
+                </div>
+                <span class="text-sm font-medium text-slate-700">${t.fullName}</span>
+            </button>
+        `).join('');
+
+        // 3. Gestione del click aggiornata per gestire il valore "null"
+        container.querySelectorAll('.teacher-item').forEach(btn => {
+            btn.onclick = () => {
+                // Se l'id è la stringa "null", passiamo il valore null reale, altrimenti l'id
+                const selectedId = btn.dataset.id === "null" ? null : btn.dataset.id;
+                const selectedName = btn.dataset.name;
+
+                if (onSelect) onSelect(selectedId, selectedName);
+                document.getElementById('teacher-picker-overlay').remove();
+            };
+        });
+    },
+
+
+
+
+
+
+
+
 
     _setupEvents(overlay, options) {
         document.getElementById('close-picker').onclick = () => overlay.remove();

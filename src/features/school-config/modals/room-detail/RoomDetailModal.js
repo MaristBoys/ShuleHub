@@ -234,7 +234,7 @@ export const RoomDetailModal = {
         if (teacherEditBtn && this._isAuthorized && !isNew) {
             teacherEditBtn.onclick = () => {
                 TeacherPickerModal.show({
-                    title: `Assign Class Teacher for ${this._data.roomName}`,
+                    title: `Assign Class Teacher - ${this._data.roomName}`,
                     onSelect: async (employeeId, fullName) => {
                         const res = await TeacherAssignmentService.assignClassTeacher(this._yearRoomId, employeeId);
                         if (res.success) {
@@ -244,8 +244,8 @@ export const RoomDetailModal = {
                                 nameElement.textContent = fullName;
                             }
                             this._data.classTeacherName = fullName; // aggiorniamo i dati interni
-                            ToastView.show("Class Teacher assigned", "success");
-                            
+                            //ToastView.show("Class Teacher assigned", "success");
+                            ToastView.show(employeeId ? "Class Teacher assigned" : "Assignment removed", "success");
                             // Se necessario, refresh della vista principale
                             if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
 

@@ -16,7 +16,7 @@ export const RoomDetailModal = {
     _yearRoomId: null,
     _creationParams: null,
 
-    async show(yearRoomId, isAuthorized = false, previewParams = null) {
+    async show(yearRoomId, isAuthorized = false, roomNum = null, yearId = null) {
         // Rimuovi eventuali residui rimasti appesi per errore, quando chiudu e riapri lo stesso modale
         const oldOverlay = document.getElementById('room-detail-overlay');
         if (oldOverlay) oldOverlay.remove();
@@ -24,20 +24,19 @@ export const RoomDetailModal = {
         this._isAuthorized = isAuthorized;
         this._currentTab = 'scales';
         this._yearRoomId = yearRoomId;
-        this._creationParams = previewParams;
+        
+        // Salviamo i parametri per la creazione futura se stiamo aprendo una ghost cell
+        this._creationParams = yearRoomId ? null : { roomNum, yearId };
 
         let result;
-        if (yearRoomId) {
-            result = await SchoolConfigService.getYearRoomDetails(yearRoomId);
-        } else if (previewParams) {
-            result = await SchoolConfigService.getRoomPreview(previewParams.yearId, previewParams.roomNum);
-        }
+        // Chiamata al nuovo metodo unificato del Service
+        result = await SchoolConfigService.getYearRoomDetails(yearRoomId, roomNum, yearId);
 
-        if (result?.success) {
+        if (result && result.success) {
             this._data = result.data;
-            this._render();
+            this._render(this._data);
         } else {
-            ToastView.show("Data not avaible", "error");
+            ToastView.show(result?.message || "Error loading details", "error");
         }
     },
 
@@ -133,7 +132,7 @@ export const RoomDetailModal = {
                 </div>
 
                 <div id="modal-tab-content" class="flex-1 overflow-auto p-6 bg-slate-50/50">
-                    ${this._getTabContent()}
+                    Loading...
                 </div>
 
                 <div class="p-6 bg-white border-t border-gray-100">
@@ -148,6 +147,8 @@ export const RoomDetailModal = {
         document.body.appendChild(modalOverlay);
         // IMPORTANTE: Passa il nuovo overlay appena creato ai listener, (aggancia i listener all'Overlay appena creato)
         this._setupListeners(modalOverlay);
+        // Carica il contenuto iniziale del tab in modo asincrono
+        this._renderTabContent(modalOverlay);
     },
 
     _getTabContent() {
@@ -209,23 +210,20 @@ export const RoomDetailModal = {
             };
         }
 
-        // Cambio Tab - CORRETTO
+        // Cambio Tab 
         overlay.querySelectorAll('.tab-trigger').forEach(btn => {
-            btn.onclick = () => {
+            btn.onclick = async () => {
+                // Se il tab è disabilitato (es. per Ghost Cell), non fare nulla
+                if (btn.hasAttribute('disabled')) return;
+
                 // 1. Aggiorna lo stato interno
                 this._currentTab = btn.dataset.tab;
                 
-                // 2. Cerca il contenitore del contenuto SOLO dentro questo modale
-                const contentContainer = overlay.querySelector('#modal-tab-content');
-                if (contentContainer) {
-                    contentContainer.innerHTML = this._getTabContent();
-                }
-                
-                // 3. Aggiorna l'interfaccia dei tab (passando l'overlay)
+                // 2. Aggiorna l'estetica dei pulsanti (colori, ombre)
                 this._updateTabUI(overlay);
                 
-                // 4. Se hai logiche specifiche per i contenuti dei tab (es. riagganciare listener interni)
-                this._renderTabContent(overlay);
+                // 3. Renderizza il nuovo contenuto asincrono
+                await this._renderTabContent(overlay);
             };
         });
 
@@ -291,6 +289,32 @@ export const RoomDetailModal = {
         }
     },
 
+
+    async _renderTabContent(overlay) {
+        const contentContainer = overlay.querySelector('#modal-tab-content');
+        if (!contentContainer) return;
+
+        let html = '';
+        
+        // 1. Scegliamo cosa renderizzare in base al tab corrente
+        switch(this._currentTab) {
+            case 'scales':
+                html = await ScalesTab.render(this._data);
+                contentContainer.innerHTML = html;
+                ScalesTab.initEvents(); // Attiva i popover
+                break;
+            case 'staff':
+                html = StaffTab.render(this._data);
+                contentContainer.innerHTML = html;
+                // StaffTab.initEvents(); // Se hai eventi per lo staff, chiamali qui
+                break;
+            case 'students':
+                html = StudentsTab.render(this._data);
+                contentContainer.innerHTML = html;
+                // StudentsTab.initEvents(); // Se hai eventi per gli studenti, chiamali qui
+                break;
+        }
+    },
 
     // metodo utility per il listener del toggle
     _updateStatusUI(isActive, overlay) {

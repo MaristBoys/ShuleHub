@@ -220,7 +220,7 @@ export const ActiveRoomsModal = {
                 console.log("Opening Preview for Room Number:", roomNum, "Year:", yearId);
                 
                 // Passiamo roomNum nell'oggetto dei parametri
-                RoomDetailModal.show(null, isAuthorized, { yearId, roomNum });
+                RoomDetailModal.show(null, isAuthorized, roomNum, yearId); 
             };
         });
     },

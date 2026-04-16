@@ -24,7 +24,7 @@ export const ActiveRoomsModal = {
 
         const { streams, rows } = result.data;
 
-        console.log(result.data);
+        //console.log(result.data);
 
         const modalOverlay = document.createElement('div');
         modalOverlay.id = 'rooms-modal-overlay';
@@ -217,7 +217,7 @@ export const ActiveRoomsModal = {
                 const roomNum = btn.dataset.roomNum; 
                 const yearId = this._currentYearId;
 
-                console.log("Opening Preview for Room Number:", roomNum, "Year:", yearId);
+                //console.log("Opening Preview for Room Number:", roomNum, "Year:", yearId);
                 
                 // Passiamo roomNum nell'oggetto dei parametri
                 RoomDetailModal.show(null, isAuthorized, roomNum, yearId); 

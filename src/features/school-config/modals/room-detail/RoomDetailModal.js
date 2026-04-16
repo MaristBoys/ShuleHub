@@ -41,6 +41,11 @@ export const RoomDetailModal = {
     },
 
     _render() {
+        // 1. PRIMA DI TUTTO: Rimuovi il modale esistente se presente
+            const oldOverlay = document.getElementById('room-detail-overlay');
+            if (oldOverlay) oldOverlay.remove();
+
+
         const isNew = !this._yearRoomId;  // Booleano per capire se è una Ghost Cell
         
         // Logica: se è nuova = Inactive (false). Se esiste = valore dal DB.
@@ -296,23 +301,88 @@ export const RoomDetailModal = {
 
         let html = '';
         
+        // Prepariamo un oggetto dati che includa i parametri di creazione da dare in pasto alle tab,
+        //  così non devono preoccuparsi di gestire la logica di ghost cell
+        const tabData = {
+            ...this._data,
+            creationParams: this._creationParams // Passiamo l'oggetto {roomNum, yearId}
+        }
+
+
         // 1. Scegliamo cosa renderizzare in base al tab corrente
         switch(this._currentTab) {
             case 'scales':
-                html = await ScalesTab.render(this._data);
-                contentContainer.innerHTML = html;
-                ScalesTab.initEvents(); // Attiva i popover
-                break;
+            // Renderizziamo l'HTML
+            contentContainer.innerHTML = await ScalesTab.render(tabData);
+            
+            // Attiviamo logica interna (bottoni e popover) passando l'overlay
+            ScalesTab.postRender(overlay, (resultData) => {
+                // Callback: cosa succede quando ScalesTab salva con successo
+                // Se il server ci ha restituito un nuovo ID (perché era una Ghost Cell)
+                if (resultData && resultData.id) {
+                    this._yearRoomId = resultData.id;
+                    // Puliamo i parametri di creazione perché ora la stanza ESISTE
+                    this._creationParams = null; 
+                }     
+                this.refreshData(); // Rinfresca i dati del modale
+                
+                // rinfresca la griglia sotto se presente
+                if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
+                // Se vuoi chiudere tutto e ricaricare la dashboard:
+                // overlay.remove();
+                if (DashboardController.init) DashboardController.init();
+            });
+            break;
             case 'staff':
-                html = StaffTab.render(this._data);
-                contentContainer.innerHTML = html;
-                // StaffTab.initEvents(); // Se hai eventi per lo staff, chiamali qui
+                // 1. Renderizziamo l'HTML del tab
+                contentContainer.innerHTML = StaffTab.render(this._data);
+                
+                // 2. ATTIVIAMO I LISTENER (Teacher Picker, Toggle Occhio, Delete)
+                // Passiamo: l'overlay del modale, l'ID della stanza e la funzione per rinfrescare i dati
+                StaffTab.postRender(
+                    overlay, 
+                    this._yearRoomId, 
+                    () => this.refreshData()
+                );
                 break;
+
+
+
+
+
+
+
             case 'students':
                 html = StudentsTab.render(this._data);
                 contentContainer.innerHTML = html;
                 // StudentsTab.initEvents(); // Se hai eventi per gli studenti, chiamali qui
                 break;
+        }
+    },
+
+
+    async refreshData() {
+        // Se non abbiamo l'ID e non abbiamo i parametri di creazione, non possiamo refreshare
+        if (!this._yearRoomId && !this._creationParams) return;
+
+        const result = await SchoolConfigService.getYearRoomDetails(
+            this._yearRoomId, 
+            this._creationParams?.roomNum, 
+            this._creationParams?.yearId
+        );
+
+        if (result && result.success) {
+            this._data = result.data;
+            
+            // Se è stata appena creata, aggiorniamo l'ID interno per i futuri refresh
+            if (result.data.yearRoomId) {
+                this._yearRoomId = result.data.yearRoomId;
+                this._creationParams = null; // Non è più una ghost cell
+            }
+
+            // Rieseguiamo il render principale: grazie alla modifica al punto 1,
+            // questo sostituirà il modale vecchio con quello nuovo aggiornato
+            this._render();
         }
     },
 

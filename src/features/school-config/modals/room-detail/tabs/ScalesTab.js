@@ -6,6 +6,8 @@ export const ScalesTab = {
     _allScales: [],
 
     async render(data) {
+        this._data = data; // Salviamo i dati per poterli usare in postRender e save
+
         // 1. Carichiamo le scale tramite il Service se non le abbiamo in cache
         if (this._allScales.length === 0) {
             const result = await SchoolConfigService.getAllActiveScales();
@@ -24,17 +26,55 @@ export const ScalesTab = {
             { id: 'conduct-text', label: 'Conduct Scale (General)', value: current.conductTextScaleId, type: 'CONDUCT_TEXT' }
         ];
 
-        return `
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                ${configs.map(s => this._renderScaleRow(s)).join('')}
-            </div>
+        const isNew = !data.yearRoomId;
+        const btnLabel = isNew ? 'Activate Room' : 'Update Scales';
 
+        return `
+            <div class="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-400">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    ${configs.map(conf => this._renderScaleRow(conf)).join('')}
+                </div>
+                
+                <div class="flex justify-center pt-4 border-t border-slate-100">
+                    <button id="btn-save-scales-internal" 
+                            class="px-8 py-3 bg-blue-600 text-white rounded-2xl text-[11px] font-black uppercase tracking-widest shadow-lg shadow-blue-200 hover:bg-blue-700 transition-all">
+                        ${btnLabel}
+                    </button>
+                </div>
+            </div>
+      
             <div id="scale-popover-overlay" class="hidden fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] z-[130]"></div>
             <div id="scale-popover" class="hidden fixed z-[140] bg-white rounded-3xl shadow-2xl w-[90%] max-w-sm top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 overflow-hidden border border-slate-200">
-                <div id="popover-content" class="p-5"></div>
+                <div id="popover-content" class="p-5 text-[10px]"></div>
                 <button id="close-popover" class="w-full py-4 bg-slate-50 text-slate-500 font-black text-[10px] uppercase border-t border-slate-100">Close Preview</button>
             </div>
         `;
+    },
+
+
+    postRender(overlay, onSaveSuccess) {
+        // 1. Attiva i popover (Preview)
+        this.initEvents(overlay);
+        
+        // 2. Attiva il bottone di salvataggio interno
+        const saveBtn = overlay.querySelector('#btn-save-scales-internal');
+        if (saveBtn) {
+            saveBtn.onclick = async () => {
+                
+                const yearRoomId = this._data?.yearRoomId; // Recuperiamo l'ID della stanza (se esiste)
+                const creationParams = this._data?.creationParams; // Recuperiamo creationParams che abbiamo iniettato nel render
+                              
+                // Eseguiamo il salvataggio
+                // Passiamo true come isActive perché l'utente sta cliccando "Activate Room"
+                const res = await this.save(yearRoomId, true, creationParams);
+                if (res && res.success) {
+                    ToastView.show(yearRoomId ? "Scales updated" : "Room activated!", "success");
+                    if (onSaveSuccess) onSaveSuccess(res.data);
+                } else {
+                    ToastView.show(res?.message || "Error during save", "error");
+                }
+            };
+        }  
     },
 
     _renderScaleRow(s) {
@@ -73,62 +113,84 @@ export const ScalesTab = {
         `;
     },
 
-    initEvents() {
-        const overlay = document.getElementById('scale-popover-overlay');
-        const popover = document.getElementById('scale-popover');
-        const content = document.getElementById('popover-content');
+    initEvents(overlay) {
+        
+        const popoverOverlay = overlay.querySelector('#scale-popover-overlay');
+        const popover = overlay.querySelector('#scale-popover');
+        const content = overlay.querySelector('#popover-content');       
+
         if (!overlay || !popover) return;
 
-        document.querySelectorAll('.info-trigger').forEach(trigger => {
+        // Listener sulle icone "i" (info-trigger)
+        overlay.querySelectorAll('.info-trigger').forEach(trigger => {
             trigger.onclick = (e) => {
                 const selectId = e.currentTarget.dataset.selectId;
-                const scaleId = document.getElementById(selectId).value;
+                const selectElement = overlay.querySelector(`#${selectId}`);
+                const scaleId = selectElement ? selectElement.value : null;
                 if (!scaleId) return ToastView.show("Select a scale first", "info");
 
                 const scale = this._allScales.find(sc => sc.id == scaleId);
-                if (scale) this._showPopover(scale, overlay, popover, content);
+                if (scale) this._showPopover(scale, popoverOverlay, popover, content);
             };
         });
 
-        const hide = () => { overlay.classList.add('hidden'); popover.classList.add('hidden'); };
-        overlay.onclick = hide;
-        document.getElementById('close-popover').onclick = hide;
+        // Funzione per chiudere
+        const hide = () => { 
+            popoverOverlay.classList.add('hidden'); 
+            popover.classList.add('hidden'); 
+        };
+        
+        popoverOverlay.onclick = hide;
+        const closeBtn = overlay.querySelector('#close-popover');
+        if (closeBtn) closeBtn.onclick = hide;
     },
 
     _showPopover(scale, overlay, popover, content) {
-        const rangesHtml = scale.ranges?.length > 0 
-            ? scale.ranges.map(r => `
-                <tr class="border-b border-slate-50 last:border-0 text-xs">
-                    <td class="py-2 font-bold text-blue-600">${r.textValue || '-'}</td>
-                    <td class="py-2 text-slate-500">${r.attribute || '-'}</td>
-                    <td class="py-2 text-center text-slate-700">${r.minValue}-${r.maxValue}</td>
-                    <td class="py-2 text-right font-bold text-slate-600">${r.points}</td>
+    // 1. Generiamo le righe della tabella
+        const ranges = scale.ranges || [];
+        
+        const rangesHtml = ranges.length > 0 
+            ? ranges.map(r => `
+                <tr class="border-b border-slate-50 last:border-0 text-[11px]">
+                    <td class="py-3 font-black text-blue-600">${r.textValue || '-'}</td>
+                    <td class="py-3 text-slate-500 font-medium">${r.attribute || '-'}</td>
+                    <td class="py-3 text-center text-slate-700 font-bold">${r.minValue ?? 0}-${r.maxValue ?? 0}%</td>
+                    <td class="py-3 text-right font-black text-slate-400">${r.points ?? 0}</td>
                 </tr>`).join('')
-            : '<tr><td colspan="4" class="py-4 text-center text-slate-400 text-xs">No details available</td></tr>';
+            : '<tr><td colspan="4" class="py-8 text-center text-slate-400 italic">No details available</td></tr>';
 
+        // 2. Costruiamo l'intero contenuto del popover
         content.innerHTML = `
-            <h4 class="text-sm font-black uppercase text-slate-800 mb-4">${scale.scaleName}</h4>
-            <div class="max-h-[250px] overflow-y-auto">
-                <table class="w-full text-left">
-                    <thead class="text-[8px] uppercase text-slate-400 border-b border-slate-100">
-                        <tr><th class="pb-2">Value</th><th class="pb-2">Attr</th><th class="pb-2 text-center">Range</th><th class="pb-2 text-right">Pts</th></tr>
+            <div class="mb-4 flex items-center justify-between">
+                <h4 class="text-xs font-black uppercase text-slate-800 tracking-wider">${scale.scaleName || 'Scale Detail'}</h4>
+                <span class="px-2 py-0.5 bg-blue-50 text-blue-500 text-[8px] font-black rounded-lg uppercase">${scale.indicatorType || ''}</span>
+            </div>
+            
+            <div class="max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 bg-white shadow-[0_1px_0_0_rgba(0,0,0,0.05)]">
+                        <tr class="text-[9px] uppercase text-slate-400 font-black tracking-widest">
+                            <th class="pb-2">Value</th>
+                            <th class="pb-2">Label</th>
+                            <th class="pb-2 text-center">Range</th>
+                            <th class="pb-2 text-right">Pts</th>
+                        </tr>
                     </thead>
-                    <tbody>${rangesHtml}</tbody>
+                    <tbody class="divide-y divide-slate-50">
+                        ${rangesHtml}
+                    </tbody>
                 </table>
-            </div>`;
+            </div>
+        `;
+
+        // 3. Mostriamo gli elementi
         overlay.classList.remove('hidden');
         popover.classList.remove('hidden');
+        
+        // 4. Reset dello scroll del contenuto (se l'utente lo aveva scrollato prima)
+        const scrollContainer = content.querySelector('.overflow-y-auto');
+        if (scrollContainer) scrollContainer.scrollTop = 0;
     },
-
-/*    getData() {
-        return {
-            gradeScaleId: document.getElementById('grade-scale-select')?.value || null,
-            divisionScaleId: document.getElementById('division-scale-select')?.value || null,
-            conductAlphaScaleId: document.getElementById('conduct-alpha-scale-select')?.value || null,
-            conductTextScaleId: document.getElementById('conduct-text-scale-select')?.value || null
-        };
-    },
-*/
 
     getData() {
         return {
@@ -140,14 +202,6 @@ export const ScalesTab = {
         };
     },
 
-/*
-    async save(yearRoomId, isActive, creationParams = null) {
-        const scaleData = { ...this.getData(), isActive };
-        return yearRoomId 
-            ? await SchoolConfigService.updateYearRoomScales(yearRoomId, scaleData)
-            : await SchoolConfigService.assignRoom({ ...creationParams, ...scaleData });
-    }
-*/
     async save(yearRoomId, isActive, creationParams = null) {
         // Recuperiamo le chiavi corrette (GRADE, DIVISION, ecc.)
         const scaleIds = this.getData();
@@ -165,9 +219,4 @@ export const ScalesTab = {
             });
         }
     }
-
-
-
-
-
 };

@@ -53,5 +53,25 @@ export const SubjectService = {
             method: 'PATCH'
         }, 'Cambio stato...');
         return await response.json();
-    }
+    },
+
+
+    /**
+     * Recupera le materie attive che NON sono ancora presenti nella stanza specifica.
+     * Collegato all'endpoint: GET /api/v1/subjects/available-for-room/{yearRoomId}
+     */
+    async getAvailableForRoom(yearRoomId) {
+        try {
+            const response = await api.fetchWithLoader(
+                `/api/v1/subjects/available-for-room/${yearRoomId}`, 
+                { method: 'GET' }, 
+                'Checking available subjects...'
+            );
+            return await response.json();
+        } catch (error) {
+            console.error('Error fetching available subjects for room:', error);
+            return { success: false, message: "Connection error while fetching subjects" };
+        }
+    },
+
 };

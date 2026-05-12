@@ -25,7 +25,7 @@ export const ToastView = {
 
         // 2. Definizione stili e icone in base al tipo
         const configs = {
-            info: { bg: 'bg-blue-900', icon: 'ℹ️' },
+            info: { bg: 'bg-green-400', icon: 'ℹ️' },
             warning: { bg: 'bg-amber-500', icon: '⚠️' },
             error: { bg: 'bg-red-600', icon: '🚫' }
         };

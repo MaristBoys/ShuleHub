@@ -134,14 +134,14 @@ export const StudentsTab = {
             };
         });
 
-        // 2. LISTENER ADD STUDENT
+        // 2. LISTENER ADD STUDENT  --DA FARE
         const addBtn = container.querySelector('#btn-add-student');
-        if (addBtn) {
-            addBtn.onclick = async () => {
-                const { StudentPickerModal } = await import('../StudentPickerModal.js');
-                StudentPickerModal.show(yearRoomId, onRefresh);
-            };
-        }
+//        if (addBtn) {
+//            addBtn.onclick = async () => {
+//                const { StudentPickerModal } = await import('../StudentPickerModal.js');
+//                StudentPickerModal.show(yearRoomId, onRefresh);
+//            };
+//        }
 
         // 3. LISTENER SMART COPY
         const copyBtn = container.querySelector('#btn-smart-copy-students');

@@ -140,12 +140,6 @@ export const RoomDetailModal = {
                     Loading...
                 </div>
 
-                <div class="p-6 bg-white border-t border-gray-100">
-                    <button id="save-room-config" class="w-full py-4 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg transition-all active:scale-[0.98]">
-                        ${isNew ? 'Activate Room' : 'Update Scales'}
-                    </button>
-                </div>
-                
             </div>
         `;
 
@@ -262,36 +256,6 @@ export const RoomDetailModal = {
         // Se è una nuova stanza, ci assicuriamo che non faccia nulla al click
         teacherEditBtn.onclick = null;
         }
-
-        // SAVE DISPATCHER
-        const saveBtn = overlay.querySelector('#save-room-config');
-
-        if (saveBtn) {
-            saveBtn.onclick = async () => {
-
-                if (!this._isAuthorized) return;
-                
-                let success = false;
-                switch(this._currentTab) {
-                    case 'scales':
-                        const result = await ScalesTab.save(this._yearRoomId, this._data.isActive, this._creationParams);
-                        success = result?.success !== undefined ? result.success : result;
-                        break;
-                    case 'staff':
-                        success = await StaffTab.save(this._yearRoomId);
-                        break;
-                    case 'students':
-                        success = await StudentsTab.save(this._yearRoomId);
-                        break;
-                }
-
-                if (success) {
-                    ToastView.show("Saved successfully", "success");
-                    overlay.remove();
-                    if (window.ActiveRoomsModal) window.ActiveRoomsModal.refresh();
-                }
-            };
-        }
     },
 
 
@@ -345,17 +309,12 @@ export const RoomDetailModal = {
                     () => this.refreshData()
                 );
                 break;
-
-
-
-
-
-
-
             case 'students':
                 html = StudentsTab.render(this._data);
                 contentContainer.innerHTML = html;
-                // StudentsTab.initEvents(); // Se hai eventi per gli studenti, chiamali qui
+                
+                StudentsTab.postRender(contentContainer, this._yearRoomId, () => this.refreshData());
+                
                 break;
         }
     },
@@ -383,6 +342,12 @@ export const RoomDetailModal = {
             // Rieseguiamo il render principale: grazie alla modifica al punto 1,
             // questo sostituirà il modale vecchio con quello nuovo aggiornato
             this._render();
+
+            // --- AGGIUNGI QUESTA RIGA ---
+            // Se esiste la griglia sottostante, rinfrescala per aggiornare i badge (Staffing Ratio, CT Name)
+            if (window.ActiveRoomsModal) {
+                window.ActiveRoomsModal.refresh();
+            }
         }
     },
 
@@ -411,8 +376,5 @@ export const RoomDetailModal = {
             btn.classList.toggle('shadow-sm', isActive);
             btn.classList.toggle('text-slate-500', !isActive);
         });
-        const saveBtn = scope.querySelector('#save-room-config');
-        const labels = { scales: (!this._yearRoomId ? 'Activate Room' : 'Update Scales'), staff: 'Save Staffing', students: 'Save Student List' };
-        saveBtn.textContent = labels[this._currentTab];
     }
 };

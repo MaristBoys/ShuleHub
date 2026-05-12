@@ -99,12 +99,6 @@ export const TeacherAssignmentService = {
         }
     },
 
-
-
-
-
-
-
     /**
      * Esegue la copia intelligente da un altro anno
      */
@@ -173,16 +167,6 @@ export const TeacherAssignmentService = {
         }
     }, 
 
-
-
-
-
-
-
-
-
-
-
     /**
      * Aggiunge una materia a una stanza (senza docente inizialmente)
      */
@@ -215,9 +199,7 @@ export const TeacherAssignmentService = {
         );
         return await response.json();
     },
-
-
-  
+ 
     /**
      * Cambia lo stato attivo/inattivo di un'assegnazione.
      * Invia la PATCH all'endpoint year-rooms/{id}/subjects/{id}/toggle
@@ -257,23 +239,36 @@ export const TeacherAssignmentService = {
         }
     },
 
-
-
-
     /**
-     * Rimuove un'assegnazione (Fisica o Logica gestita dal Backend)
+     * Rimuove un'assegnazione tramite il suo ID univoco.
+     * Gestisce sia la rimozione fisica che il soft delete fatto nel backend.
      */
-    async removeAssignment(yearRoomId, subjectId) {
+    async removeAssignment(assignmentId) {
         try {
             const response = await api.fetchWithLoader(
-                `/api/v1/teacher-assignments/year-rooms/${yearRoomId}/subjects/${subjectId}`,
+                `/api/v1/teacher-assignments/${assignmentId}`, 
                 { method: 'DELETE' },
                 'Removing assignment...'
             );
-            return await response.json();
+
+            // Se la risposta è OK, leggiamo il JSON per ottenere il messaggio del backend
+            if (response.ok) {
+                return await response.json();
+            }
+
+            // Gestione errori (es. 403, 404, 500)
+            const errorData = await response.json().catch(() => ({}));
+            return { 
+                success: false, 
+                message: errorData.message || `Error: ${response.status}` 
+            };
+            
         } catch (error) {
             console.error('Error removing assignment:', error);
             return { success: false, message: "Connection error" };
         }
     }
+
+
+
 };

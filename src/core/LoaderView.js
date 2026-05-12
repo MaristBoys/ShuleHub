@@ -26,10 +26,11 @@ export const LoaderView = {
                 <h2 id="loader-message" class="text-blue-900 font-semibold text-sm mb-2">${message}</h2>
                 
                 <div id="loader-countdown" class="text-blue-600 text-xs mb-4 hidden animate-pulse"></div>
-                
+<!--                
                 <div class="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
                     <div id="loader-bar" class="bg-blue-600 h-full w-1/3 animate-[loading_2s_infinite_linear]"></div>
                 </div>
+-->
             </div>
         `;
 

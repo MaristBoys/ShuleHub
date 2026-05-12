@@ -16,7 +16,10 @@ export const ToastView = {
             container = document.createElement('div');
             container.id = this._id;
             // Posizionamento in basso a destra, sopra tutto
-            container.className = "fixed bottom-6 right-6 z-[11000] flex flex-col gap-3 pointer-events-none";
+            //container.className = "fixed bottom-6 right-6 z-[11000] flex flex-col gap-3 pointer-events-none";
+            // Per centrare in alto invece, usa:
+            container.className = "fixed top-6 left-1/2 -translate-x-1/2 z-[11000] flex flex-col gap-3 pointer-events-none";
+            
             document.body.appendChild(container);
         }
 
